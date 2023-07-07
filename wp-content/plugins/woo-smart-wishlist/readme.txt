@@ -4,7 +4,7 @@ Donate link: https://wpclever.net
 Tags: woocommerce, woo, wpc, smart, wishlist, wish list
 Requires at least: 4.0
 Tested up to: 6.2
-Stable tag: 4.7.0
+Stable tag: 4.7.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,7 @@ Please try other plugins from us:
 - [WPC Smart Quick View](https://wordpress.org/plugins/woo-smart-quick-view/ "WPC Smart Quick View")
 - [WPC Fly Cart](https://wordpress.org/plugins/woo-fly-cart/ "WPC Fly Cart")
 - [WPC Smart Messages](https://wordpress.org/plugins/wpc-smart-messages/ "WPC Smart Messages")
+- [WPC Added To Cart Notification](https://wordpress.org/plugins/woo-added-to-cart-notification/ "WPC Added To Cart Notification")
 
 == Installation ==
 
@@ -102,6 +103,9 @@ Example:
 `echo do_shortcode('[woosw id="99"]');`
 
 == Changelog ==
+
+= 4.7.1 =
+* Fixed: Minor JS/CSS issues in the backend
 
 = 4.7.0 =
 * Added: Suggested products from related/upsells/cross-sells

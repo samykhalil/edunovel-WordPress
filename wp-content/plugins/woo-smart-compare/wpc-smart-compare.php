@@ -3,7 +3,7 @@
 Plugin Name: WPC Smart Compare for WooCommerce
 Plugin URI: https://wpclever.net/
 Description: Smart products compare for WooCommerce.
-Version: 5.5.0
+Version: 6.0.1
 Author: WPClever
 Author URI: https://wpclever.net
 Text Domain: woo-smart-compare
@@ -18,7 +18,7 @@ use Automattic\WooCommerce\Utilities\FeaturesUtil;
 
 defined( 'ABSPATH' ) || exit;
 
-! defined( 'WOOSC_VERSION' ) && define( 'WOOSC_VERSION', '5.5.0' );
+! defined( 'WOOSC_VERSION' ) && define( 'WOOSC_VERSION', '6.0.1' );
 ! defined( 'WOOSC_FILE' ) && define( 'WOOSC_FILE', __FILE__ );
 ! defined( 'WOOSC_URI' ) && define( 'WOOSC_URI', plugin_dir_url( __FILE__ ) );
 ! defined( 'WOOSC_DIR' ) && define( 'WOOSC_DIR', plugin_dir_path( __FILE__ ) );
@@ -28,8 +28,7 @@ defined( 'ABSPATH' ) || exit;
 ! defined( 'WOOSC_DISCUSSION' ) && define( 'WOOSC_DISCUSSION', 'https://wordpress.org/support/plugin/woo-smart-compare' );
 ! defined( 'WPC_URI' ) && define( 'WPC_URI', WOOSC_URI );
 
-include 'includes/wpc-dashboard.php';
-include 'includes/wpc-menu.php';
+include 'includes/dashboard/wpc-dashboard.php';
 include 'includes/kit/wpc-kit.php';
 
 if ( ! function_exists( 'woosc_init' ) ) {
@@ -50,7 +49,6 @@ if ( ! function_exists( 'woosc_init' ) ) {
 				protected static $settings = [];
 				protected static $localization = [];
 				protected static $fields = [];
-				protected static $attributes = [];
 				protected static $instance = null;
 
 				public static function instance() {
@@ -87,6 +85,9 @@ if ( ! function_exists( 'woosc_init' ) ) {
 					// ajax share
 					add_action( 'wp_ajax_woosc_share', [ $this, 'share' ] );
 					add_action( 'wp_ajax_nopriv_woosc_share', [ $this, 'share' ] );
+
+					// ajax add field
+					add_action( 'wp_ajax_woosc_add_field', [ $this, 'ajax_add_field' ] );
 
 					// add to compare
 					add_action( 'template_redirect', [ $this, 'add_by_link' ] );
@@ -158,31 +159,19 @@ if ( ! function_exists( 'woosc_init' ) ) {
 				function init() {
 					// fields
 					self::$fields = apply_filters( 'woosc_fields', [
-						'image'             => self::localization( 'field_image', esc_html__( 'Image', 'woo-smart-compare' ) ),
-						'sku'               => self::localization( 'field_sku', esc_html__( 'SKU', 'woo-smart-compare' ) ),
-						'rating'            => self::localization( 'field_rating', esc_html__( 'Rating', 'woo-smart-compare' ) ),
-						'price'             => self::localization( 'field_price', esc_html__( 'Price', 'woo-smart-compare' ) ),
-						'stock'             => self::localization( 'field_stock', esc_html__( 'Stock', 'woo-smart-compare' ) ),
-						'availability'      => self::localization( 'field_availability', esc_html__( 'Availability', 'woo-smart-compare' ) ),
-						'add_to_cart'       => self::localization( 'field_add_to_cart', esc_html__( 'Add to cart', 'woo-smart-compare' ) ),
-						'description'       => self::localization( 'field_description', esc_html__( 'Description', 'woo-smart-compare' ) ),
-						'content'           => self::localization( 'field_content', esc_html__( 'Content', 'woo-smart-compare' ) ),
-						'weight'            => self::localization( 'field_weight', esc_html__( 'Weight', 'woo-smart-compare' ) ),
-						'dimensions'        => self::localization( 'field_dimensions', esc_html__( 'Dimensions', 'woo-smart-compare' ) ),
-						'additional'        => self::localization( 'field_additional', esc_html__( 'Additional information', 'woo-smart-compare' ) ),
-						'attributes'        => self::localization( 'field_attributes', esc_html__( 'Attributes', 'woo-smart-compare' ) ),
-						'custom_attributes' => self::localization( 'field_custom_attributes', esc_html__( 'Custom attributes', 'woo-smart-compare' ) ),
-						'custom_fields'     => self::localization( 'field_custom_fields', esc_html__( 'Custom fields', 'woo-smart-compare' ) ),
+						'image'        => self::localization( 'field_image', esc_html__( 'Image', 'woo-smart-compare' ) ),
+						'sku'          => self::localization( 'field_sku', esc_html__( 'SKU', 'woo-smart-compare' ) ),
+						'rating'       => self::localization( 'field_rating', esc_html__( 'Rating', 'woo-smart-compare' ) ),
+						'price'        => self::localization( 'field_price', esc_html__( 'Price', 'woo-smart-compare' ) ),
+						'stock'        => self::localization( 'field_stock', esc_html__( 'Stock', 'woo-smart-compare' ) ),
+						'availability' => self::localization( 'field_availability', esc_html__( 'Availability', 'woo-smart-compare' ) ),
+						'add_to_cart'  => self::localization( 'field_add_to_cart', esc_html__( 'Add to cart', 'woo-smart-compare' ) ),
+						'description'  => self::localization( 'field_description', esc_html__( 'Description', 'woo-smart-compare' ) ),
+						'content'      => self::localization( 'field_content', esc_html__( 'Content', 'woo-smart-compare' ) ),
+						'weight'       => self::localization( 'field_weight', esc_html__( 'Weight', 'woo-smart-compare' ) ),
+						'dimensions'   => self::localization( 'field_dimensions', esc_html__( 'Dimensions', 'woo-smart-compare' ) ),
+						'additional'   => self::localization( 'field_additional', esc_html__( 'Additional information', 'woo-smart-compare' ) )
 					] );
-
-					// attributes
-					$wc_attributes = wc_get_attribute_taxonomies();
-
-					if ( $wc_attributes ) {
-						foreach ( $wc_attributes as $wc_attribute ) {
-							self::$attributes[ $wc_attribute->attribute_name ] = $wc_attribute->attribute_label;
-						}
-					}
 
 					// rewrite
 					if ( $page_id = self::get_page_id() ) {
@@ -249,49 +238,18 @@ if ( ! function_exists( 'woosc_init' ) ) {
 					}
 				}
 
-				public static function get_settings() {
-					return apply_filters( 'woosc_get_settings', self::$settings );
-				}
-
-				public static function get_setting( $name, $default = false ) {
-					$settings = self::get_settings();
-
-					if ( ! empty( $settings ) ) {
-						if ( isset( $settings[ $name ] ) ) {
-							$setting = $settings[ $name ];
-						} else {
-							$setting = $default;
-						}
-					} else {
-						$setting = get_option( 'woosc_' . $name, $default );
-					}
-
-					return apply_filters( 'woosc_get_setting', $setting, $name, $default );
-				}
-
-				public static function localization( $key = '', $default = '' ) {
-					$str = '';
-
-					if ( ! empty( $key ) && ! empty( self::$localization[ $key ] ) ) {
-						$str = self::$localization[ $key ];
-					} elseif ( ! empty( $default ) ) {
-						$str = $default;
-					}
-
-					return apply_filters( 'woosc_localization_' . $key, $str );
-				}
-
 				function login( $user_login, $user ) {
 					if ( isset( $user->data->ID ) ) {
+						$hash          = self::get_setting( 'hash', '6' );
 						$user_products = get_user_meta( $user->data->ID, 'woosc_products', true );
-						$user_fields   = get_user_meta( $user->data->ID, 'woosc_fields', true );
+						$user_fields   = get_user_meta( $user->data->ID, 'woosc_fields_' . $hash, true );
 
 						if ( ! empty( $user_products ) ) {
 							setcookie( 'woosc_products_' . md5( 'woosc' . $user->data->ID ), $user_products, time() + 604800, '/' );
 						}
 
 						if ( ! empty( $user_fields ) ) {
-							setcookie( 'woosc_fields_' . md5( 'woosc' . $user->data->ID ), $user_fields, time() + 604800, '/' );
+							setcookie( 'woosc_fields_' . $hash . '_' . md5( 'woosc' . $user->data->ID ), $user_fields, time() + 604800, '/' );
 						}
 					}
 				}
@@ -334,6 +292,7 @@ if ( ! function_exists( 'woosc_init' ) ) {
 
 					wp_localize_script( 'woosc-frontend', 'woosc_vars', [
 							'ajax_url'           => admin_url( 'admin-ajax.php' ),
+							'hash'               => self::get_setting( 'hash', '6' ),
 							'user_id'            => md5( 'woosc' . get_current_user_id() ),
 							'page_url'           => self::get_page_url(),
 							'open_button'        => esc_attr( self::get_setting( 'open_button', '' ) ),
@@ -368,12 +327,11 @@ if ( ! function_exists( 'woosc_init' ) ) {
 
 				function admin_enqueue_scripts( $hook ) {
 					if ( strpos( $hook, 'woosc' ) ) {
-						wp_enqueue_style( 'woosc-backend', WOOSC_URI . 'assets/css/backend.css', [ 'woocommerce_admin_styles' ], WOOSC_VERSION );
-
 						wp_enqueue_style( 'wp-color-picker' );
 						wp_enqueue_style( 'fonticonpicker', WOOSC_URI . 'assets/libs/fonticonpicker/css/jquery.fonticonpicker.css' );
 						wp_enqueue_script( 'fonticonpicker', WOOSC_URI . 'assets/libs/fonticonpicker/js/jquery.fonticonpicker.min.js', [ 'jquery' ] );
 						wp_enqueue_style( 'woosc-icons', WOOSC_URI . 'assets/css/icons.css', [], WOOSC_VERSION );
+						wp_enqueue_style( 'woosc-backend', WOOSC_URI . 'assets/css/backend.css', [ 'woocommerce_admin_styles' ], WOOSC_VERSION );
 						wp_enqueue_script( 'woosc-backend', WOOSC_URI . 'assets/js/backend.js', [
 							'jquery',
 							'wp-color-picker',
@@ -506,6 +464,7 @@ if ( ! function_exists( 'woosc_init' ) ) {
 								$open_button_action   = self::get_setting( 'open_button_action', 'open_popup' );
 								?>
 								<form method="post" action="options.php">
+									<input type="hidden" name="woosc_settings[hash]" value="<?php echo esc_attr( self::generate_key( 4, true ) ); ?>"/>
 									<table class="form-table">
 										<tr class="heading">
 											<th colspan="2">
@@ -762,83 +721,98 @@ if ( ! function_exists( 'woosc_init' ) ) {
 										<tr>
 											<th scope="row"><?php esc_html_e( 'Fields', 'woo-smart-compare' ); ?></th>
 											<td>
-												<ul class="woosc-fields">
-													<?php
-													$saved_fields = $saved_fields_arr = [];
+												<p class="description"><?php esc_html_e( 'Choose fields that you want to show on the comparison table. You also can drag/drop to rearrange these fields.', 'woo-smart-compare' ); ?></p>
+												<div class="woosc-fields-wrapper">
+													<div class="woosc-fields">
+														<?php
+														$saved_fields6 = self::get_fields();
 
-													if ( is_array( self::get_setting( 'fields' ) ) ) {
-														$saved_fields = self::get_setting( 'fields' );
-													} else {
-														$saved_fields = array_keys( self::$fields );
-													}
+														foreach ( $saved_fields6 as $key => $field ) {
+															$field = array_merge( [
+																'type'  => '',
+																'name'  => '',
+																'label' => ''
+															], $field );
 
-													foreach ( $saved_fields as $sf ) {
-														if ( isset( self::$fields[ $sf ] ) ) {
-															$saved_fields_arr[ $sf ] = self::$fields[ $sf ];
+															$type  = $field['type'];
+															$title = $field['name'];
+
+															switch ( $type ) {
+																case 'default':
+																	if ( isset( self::$fields[ $title ] ) ) {
+																		$title = self::$fields[ $title ];
+																	}
+
+																	break;
+																case 'attribute':
+																	$title = wc_attribute_label( $title );
+
+																	break;
+																case 'custom_attribute':
+																	$title = esc_html__( 'Custom attribute', 'woo-smart-compare' );
+
+																	break;
+																case 'custom_field':
+																	$title = esc_html__( 'Custom field', 'woo-smart-compare' );
+
+																	break;
+																case 'shortcode':
+																	$title = esc_html__( 'Shortcode', 'woo-smart-compare' );
+
+																	break;
+															}
+
+															echo '<div class="woosc-field woosc-field-' . $key . ' woosc-field-type-' . $field['type'] . '">';
+															echo '<span class="move">' . esc_html__( 'move', 'woo-smart-compare' ) . '</span>';
+															echo '<span class="info">';
+															echo '<span class="title">' . esc_html( $title ) . '</span>';
+															echo '<input class="woosc-field-type" type="hidden" name="woosc_settings[fields6][' . $key . '][type]" value="' . esc_attr( $field['type'] ) . '"/>';
+															echo '<input class="woosc-field-name" type="text" name="woosc_settings[fields6][' . $key . '][name]" value="' . esc_attr( $field['name'] ) . '" placeholder="' . esc_attr__( 'name', 'woo-smart-compare' ) . '"/>';
+															echo '<input class="woosc-field-label" type="text" name="woosc_settings[fields6][' . $key . '][label]" value="' . esc_attr( isset( $field['label'] ) ? $field['label'] : '' ) . '" placeholder="' . esc_attr__( 'label', 'woo-smart-compare' ) . '"/>';
+															echo '</span>';
+															echo '<span class="remove">&times;</span>';
+															echo '</div>';
 														}
-													}
+														?>
+													</div>
+													<div class="woosc-fields-more">
+														<select class="woosc-field-types">
+															<?php
+															// default fields
+															if ( ! empty( self::$fields ) ) {
+																echo '<optgroup label="' . esc_attr__( 'Default', 'woo-smart-compare' ) . '">';
 
-													$fields_merge = array_merge( $saved_fields_arr, self::$fields );
+																foreach ( self::$fields as $fk => $fv ) {
+																	echo '<option value="' . esc_attr( $fk ) . '" data-type="default">' . esc_html( $fv ) . '</option>';
+																}
 
-													foreach ( $fields_merge as $key => $value ) {
-														echo '<li class="woosc-fields-item"><input type="checkbox" name="woosc_settings[fields][]" value="' . $key . '" ' . ( in_array( $key, $saved_fields, false ) ? 'checked' : '' ) . '/><span class="label">' . $value . '</span></li>';
-													}
-													?>
-												</ul>
-												<span class="description"><?php esc_html_e( 'Please choose the fields you want to show on the comparison table. You also can drag/drop to rearrange these fields.', 'woo-smart-compare' ); ?></span>
-											</td>
-										</tr>
-										<tr>
-											<th scope="row"><?php esc_html_e( 'Attributes', 'woo-smart-compare' ); ?></th>
-											<td>
-												<ul class="woosc-attributes">
-													<?php
-													$saved_attributes = $saved_attributes_arr = [];
+																echo '</optgroup>';
+															}
 
-													if ( is_array( self::get_setting( 'attributes' ) ) ) {
-														$saved_attributes = self::get_setting( 'attributes' );
-													}
+															// attributes
+															if ( $wc_attributes = wc_get_attribute_taxonomies() ) {
+																echo '<optgroup label="' . esc_attr__( 'Attributes', 'woo-smart-compare' ) . '">';
 
-													foreach ( $saved_attributes as $sa ) {
-														if ( isset( self::$attributes[ $sa ] ) ) {
-															$saved_attributes_arr[ $sa ] = self::$attributes[ $sa ];
-														}
-													}
+																foreach ( $wc_attributes as $wc_attribute ) {
+																	echo '<option value="' . esc_attr( urlencode( 'pa_' . $wc_attribute->attribute_name ) ) . '" data-type="attribute" disabled>' . esc_html( $wc_attribute->attribute_label ) . '</option>';
+																}
 
-													$attributes_merge = array_merge( $saved_attributes_arr, self::$attributes );
-
-													foreach ( $attributes_merge as $key => $value ) {
-														echo '<li class="woosc-attributes-item"><input type="checkbox" name="woosc_settings[attributes][]" value="' . $key . '" ' . ( in_array( $key, $saved_attributes, false ) ? 'checked' : '' ) . '/><span class="label">' . $value . '</span></li>';
-													}
-													?>
-												</ul>
-												<span class="description"><?php esc_html_e( 'Please choose the attributes you want to show on the comparison table. You also can drag/drop to rearrange these attributes.', 'woo-smart-compare' ); ?></span>
-												<p class="description" style="color: #c9356e">
-													* This feature only available on Premium Version. Click
-													<a href="https://wpclever.net/downloads/smart-compare?utm_source=pro&utm_medium=woosc&utm_campaign=wporg" target="_blank">here</a> to buy, just $29!
-												</p>
-											</td>
-										</tr>
-										<tr>
-											<th scope="row"><?php esc_html_e( 'Custom attributes', 'woo-smart-compare' ); ?></th>
-											<td>
-												<textarea name="woosc_settings[custom_attributes]" rows="3" cols="50" class="large-text"><?php echo self::get_setting( 'custom_attributes' ); ?></textarea>
-												<span class="description"><?php esc_html_e( 'Add custom attribute names, split by a comma.', 'woo-smart-compare' ); ?> E.g: <code>Custom attribute 1, Custom attribute 2</code></span>
-												<p class="description" style="color: #c9356e">
-													* This feature only available on Premium Version. Click
-													<a href="https://wpclever.net/downloads/smart-compare?utm_source=pro&utm_medium=woosc&utm_campaign=wporg" target="_blank">here</a> to buy, just $29!
-												</p>
-											</td>
-										</tr>
-										<tr>
-											<th scope="row"><?php esc_html_e( 'Custom fields', 'woo-smart-compare' ); ?></th>
-											<td>
-												<textarea name="woosc_settings[custom_fields]" rows="3" cols="50" class="large-text"><?php echo self::get_setting( 'custom_fields' ); ?></textarea>
-												<span class="description"><?php esc_html_e( 'Add custom field names/slugs and labels, split by a comma.', 'woo-smart-compare' ); ?> E.g: <code>Field name 1 | Label 1, field-slug-2, Field name 3</code></span>
-												<p class="description" style="color: #c9356e">
-													* This feature only available on Premium Version. Click
-													<a href="https://wpclever.net/downloads/smart-compare?utm_source=pro&utm_medium=woosc&utm_campaign=wporg" target="_blank">here</a> to buy, just $29!
-												</p>
+																echo '</optgroup>';
+															}
+															?>
+															<optgroup label="<?php esc_attr_e( 'Custom', 'woo-smart-compare' ); ?>">
+																<option value="shortcode" data-type="shortcode"><?php esc_html_e( 'Shortcode', 'woo-smart-compare' ); ?></option>
+																<option value="custom_attribute" data-type="custom_attribute" disabled><?php esc_html_e( 'Custom attribute', 'woo-smart-compare' ); ?></option>
+																<option value="custom_field" data-type="custom_field" disabled><?php esc_html_e( 'Custom field', 'woo-smart-compare' ); ?></option>
+															</optgroup>
+														</select>
+														<button type="button" class="button woosc-field-add" data-setting="fields6"><?php esc_html_e( '+ Add', 'woo-smart-compare' ); ?></button>
+													</div>
+													<p class="description" style="color: #c9356e">
+														* Adding attribute/custom-attribute/custom-field only available on Premium Version. Click
+														<a href="https://wpclever.net/downloads/smart-compare?utm_source=pro&utm_medium=woosc&utm_campaign=wporg" target="_blank">here</a> to buy, just $29!
+													</p>
+												</div>
 											</td>
 										</tr>
 										<tr>
@@ -1099,83 +1073,98 @@ if ( ! function_exists( 'woosc_init' ) ) {
 										<tr>
 											<th scope="row"><?php esc_html_e( 'Fields', 'woo-smart-compare' ); ?></th>
 											<td>
-												<ul class="woosc-fields">
-													<?php
-													$saved_fields = $saved_fields_arr = [];
+												<p class="description"><?php esc_html_e( 'Choose fields that you want to show on the comparison table. You also can drag/drop to rearrange these fields.', 'woo-smart-compare' ); ?></p>
+												<div class="woosc-fields-wrapper">
+													<div class="woosc-fields">
+														<?php
+														$saved_fields6 = self::get_fields( 'quick_table' );
 
-													if ( is_array( self::get_setting( 'quick_fields' ) ) ) {
-														$saved_fields = self::get_setting( 'quick_fields' );
-													} else {
-														$saved_fields = array_keys( self::$fields );
-													}
+														foreach ( $saved_fields6 as $key => $field ) {
+															$field = array_merge( [
+																'type'  => '',
+																'name'  => '',
+																'label' => ''
+															], $field );
 
-													foreach ( $saved_fields as $sf ) {
-														if ( isset( self::$fields[ $sf ] ) ) {
-															$saved_fields_arr[ $sf ] = self::$fields[ $sf ];
+															$type  = $field['type'];
+															$title = $field['name'];
+
+															switch ( $type ) {
+																case 'default':
+																	if ( isset( self::$fields[ $title ] ) ) {
+																		$title = self::$fields[ $title ];
+																	}
+
+																	break;
+																case 'attribute':
+																	$title = wc_attribute_label( $title );
+
+																	break;
+																case 'custom_attribute':
+																	$title = esc_html__( 'Custom attribute', 'woo-smart-compare' );
+
+																	break;
+																case 'custom_field':
+																	$title = esc_html__( 'Custom field', 'woo-smart-compare' );
+
+																	break;
+																case 'shortcode':
+																	$title = esc_html__( 'Shortcode', 'woo-smart-compare' );
+
+																	break;
+															}
+
+															echo '<div class="woosc-field woosc-field-' . $key . ' woosc-field-type-' . $field['type'] . '">';
+															echo '<span class="move">' . esc_html__( 'move', 'woo-smart-compare' ) . '</span>';
+															echo '<span class="info">';
+															echo '<span class="title">' . esc_html( $title ) . '</span>';
+															echo '<input class="woosc-field-type" type="hidden" name="woosc_settings[quick_fields6][' . $key . '][type]" value="' . esc_attr( $field['type'] ) . '"/>';
+															echo '<input class="woosc-field-name" type="text" name="woosc_settings[quick_fields6][' . $key . '][name]" value="' . esc_attr( $field['name'] ) . '" placeholder="' . esc_attr__( 'name', 'woo-smart-compare' ) . '"/>';
+															echo '<input class="woosc-field-label" type="text" name="woosc_settings[quick_fields6][' . $key . '][label]" value="' . esc_attr( isset( $field['label'] ) ? $field['label'] : '' ) . '" placeholder="' . esc_attr__( 'label', 'woo-smart-compare' ) . '"/>';
+															echo '</span>';
+															echo '<span class="remove">&times;</span>';
+															echo '</div>';
 														}
-													}
+														?>
+													</div>
+													<div class="woosc-fields-more">
+														<select class="woosc-field-types">
+															<?php
+															// default fields
+															if ( ! empty( self::$fields ) ) {
+																echo '<optgroup label="' . esc_attr__( 'Default', 'woo-smart-compare' ) . '">';
 
-													$fields_merge = array_merge( $saved_fields_arr, self::$fields );
+																foreach ( self::$fields as $fk => $fv ) {
+																	echo '<option value="' . esc_attr( $fk ) . '" data-type="default">' . esc_html( $fv ) . '</option>';
+																}
 
-													foreach ( $fields_merge as $key => $value ) {
-														echo '<li class="woosc-fields-item"><input type="checkbox" name="woosc_settings[quick_fields][]" value="' . $key . '" ' . ( in_array( $key, $saved_fields, false ) ? 'checked' : '' ) . '/><span class="label">' . $value . '</span></li>';
-													}
-													?>
-												</ul>
-												<span class="description"><?php esc_html_e( 'Please choose the fields you want to show on the comparison table. You also can drag/drop to rearrange these fields.', 'woo-smart-compare' ); ?></span>
-											</td>
-										</tr>
-										<tr>
-											<th scope="row"><?php esc_html_e( 'Attributes', 'woo-smart-compare' ); ?></th>
-											<td>
-												<ul class="woosc-attributes">
-													<?php
-													$saved_attributes = $saved_attributes_arr = [];
+																echo '</optgroup>';
+															}
 
-													if ( is_array( self::get_setting( 'quick_attributes' ) ) ) {
-														$saved_attributes = self::get_setting( 'quick_attributes' );
-													}
+															// attributes
+															if ( $wc_attributes = wc_get_attribute_taxonomies() ) {
+																echo '<optgroup label="' . esc_attr__( 'Attributes', 'woo-smart-compare' ) . '">';
 
-													foreach ( $saved_attributes as $sa ) {
-														if ( isset( self::$attributes[ $sa ] ) ) {
-															$saved_attributes_arr[ $sa ] = self::$attributes[ $sa ];
-														}
-													}
+																foreach ( $wc_attributes as $wc_attribute ) {
+																	echo '<option value="' . esc_attr( urlencode( 'pa_' . $wc_attribute->attribute_name ) ) . '" data-type="attribute" disabled>' . esc_html( $wc_attribute->attribute_label ) . '</option>';
+																}
 
-													$attributes_merge = array_merge( $saved_attributes_arr, self::$attributes );
-
-													foreach ( $attributes_merge as $key => $value ) {
-														echo '<li class="woosc-attributes-item"><input type="checkbox" name="woosc_settings[quick_attributes][]" value="' . $key . '" ' . ( in_array( $key, $saved_attributes, false ) ? 'checked' : '' ) . '/><span class="label">' . $value . '</span></li>';
-													}
-													?>
-												</ul>
-												<span class="description"><?php esc_html_e( 'Please choose the attributes you want to show on the comparison table. You also can drag/drop to rearrange these attributes.', 'woo-smart-compare' ); ?></span>
-												<p class="description" style="color: #c9356e">
-													* This feature only available on Premium Version. Click
-													<a href="https://wpclever.net/downloads/smart-compare?utm_source=pro&utm_medium=woosc&utm_campaign=wporg" target="_blank">here</a> to buy, just $29!
-												</p>
-											</td>
-										</tr>
-										<tr>
-											<th scope="row"><?php esc_html_e( 'Custom attributes', 'woo-smart-compare' ); ?></th>
-											<td>
-												<textarea name="woosc_settings[quick_custom_attributes]" rows="3" cols="50" class="large-text"><?php echo self::get_setting( 'quick_custom_attributes' ); ?></textarea>
-												<span class="description"><?php esc_html_e( 'Add custom attribute names, split by a comma.', 'woo-smart-compare' ); ?> E.g: <code>Custom attribute 1, Custom attribute 2</code></span>
-												<p class="description" style="color: #c9356e">
-													* This feature only available on Premium Version. Click
-													<a href="https://wpclever.net/downloads/smart-compare?utm_source=pro&utm_medium=woosc&utm_campaign=wporg" target="_blank">here</a> to buy, just $29!
-												</p>
-											</td>
-										</tr>
-										<tr>
-											<th scope="row"><?php esc_html_e( 'Custom fields', 'woo-smart-compare' ); ?></th>
-											<td>
-												<textarea name="woosc_settings[quick_custom_fields]" rows="3" cols="50" class="large-text"><?php echo self::get_setting( 'quick_custom_fields' ); ?></textarea>
-												<span class="description"><?php esc_html_e( 'Add custom field names/slugs and labels, split by a comma.', 'woo-smart-compare' ); ?> E.g: <code>Field name 1 | Label 1, field-slug-2, Field name 3</code></span>
-												<p class="description" style="color: #c9356e">
-													* This feature only available on Premium Version. Click
-													<a href="https://wpclever.net/downloads/smart-compare?utm_source=pro&utm_medium=woosc&utm_campaign=wporg" target="_blank">here</a> to buy, just $29!
-												</p>
+																echo '</optgroup>';
+															}
+															?>
+															<optgroup label="<?php esc_attr_e( 'Custom', 'woo-smart-compare' ); ?>">
+																<option value="shortcode" data-type="shortcode"><?php esc_html_e( 'Shortcode', 'woo-smart-compare' ); ?></option>
+																<option value="custom_attribute" data-type="custom_attribute" disabled><?php esc_html_e( 'Custom attribute', 'woo-smart-compare' ); ?></option>
+																<option value="custom_field" data-type="custom_field" disabled><?php esc_html_e( 'Custom field', 'woo-smart-compare' ); ?></option>
+															</optgroup>
+														</select>
+														<button type="button" class="button woosc-field-add" data-setting="quick_fields6"><?php esc_html_e( '+ Add', 'woo-smart-compare' ); ?></button>
+													</div>
+													<p class="description" style="color: #c9356e">
+														* Adding attribute/custom-attribute/custom-field only available on Premium Version. Click
+														<a href="https://wpclever.net/downloads/smart-compare?utm_source=pro&utm_medium=woosc&utm_campaign=wporg" target="_blank">here</a> to buy, just $29!
+													</p>
+												</div>
 											</td>
 										</tr>
 										<tr class="heading">
@@ -1573,24 +1562,6 @@ if ( ! function_exists( 'woosc_init' ) ) {
 												<input type="text" class="regular-text" name="woosc_localization[field_additional]" value="<?php echo esc_attr( self::localization( 'field_additional' ) ); ?>" placeholder="<?php esc_attr_e( 'Additional information', 'woo-smart-compare' ); ?>"/>
 											</td>
 										</tr>
-										<tr>
-											<th><?php esc_html_e( 'Attributes', 'woo-smart-compare' ); ?></th>
-											<td>
-												<input type="text" class="regular-text" name="woosc_localization[field_attributes]" value="<?php echo esc_attr( self::localization( 'field_attributes' ) ); ?>" placeholder="<?php esc_attr_e( 'Attributes', 'woo-smart-compare' ); ?>"/>
-											</td>
-										</tr>
-										<tr>
-											<th><?php esc_html_e( 'Custom attributes', 'woo-smart-compare' ); ?></th>
-											<td>
-												<input type="text" class="regular-text" name="woosc_localization[field_custom_attributes]" value="<?php echo esc_attr( self::localization( 'field_custom_attributes' ) ); ?>" placeholder="<?php esc_attr_e( 'Custom attributes', 'woo-smart-compare' ); ?>"/>
-											</td>
-										</tr>
-										<tr>
-											<th><?php esc_html_e( 'Custom fields', 'woo-smart-compare' ); ?></th>
-											<td>
-												<input type="text" class="regular-text" name="woosc_localization[field_custom_fields]" value="<?php echo esc_attr( self::localization( 'field_custom_fields' ) ); ?>" placeholder="<?php esc_attr_e( 'Custom fields', 'woo-smart-compare' ); ?>"/>
-											</td>
-										</tr>
 										<tr class="heading">
 											<th scope="row"><?php esc_html_e( 'Menu', 'woo-smart-compare' ); ?></th>
 											<td></td>
@@ -1637,7 +1608,7 @@ if ( ! function_exists( 'woosc_init' ) ) {
 
 					if ( isset( $_REQUEST['get_data'] ) && ( sanitize_key( $_REQUEST['get_data'] ) === 'table' ) ) {
 						$data['bar']   = self::get_bar();
-						$data['table'] = self::get_table();
+						$data['table'] = self::get_table( true, null, 'table' );
 					}
 
 					if ( isset( $_REQUEST['get_data'] ) && ( sanitize_key( $_REQUEST['get_data'] ) === 'sidebar' ) ) {
@@ -1752,121 +1723,130 @@ if ( ! function_exists( 'woosc_init' ) ) {
 					if ( is_array( $products ) && ( count( $products ) > 0 ) ) {
 						$link   = self::get_setting( 'link', 'yes' );
 						$remove = self::get_setting( 'remove', 'yes' ) === 'yes';
+						$fields = self::get_fields( $context );
 
-						if ( $context === 'quick_table' ) {
-							$saved_fields = self::get_setting( 'quick_fields' );
-						} else {
-							$saved_fields = self::get_setting( 'fields' );
-						}
-
-						if ( empty( $saved_fields ) || ! is_array( $saved_fields ) ) {
-							$saved_fields = array_keys( self::$fields );
-						}
-
-						$saved_fields = apply_filters( 'woosc_saved_fields', $saved_fields, $products, $context );
+						global $post;
 
 						foreach ( $products as $product_id ) {
-							$product_obj    = wc_get_product( $product_id );
+							$post = get_post( $product_id );
+							setup_postdata( $post );
+
+							$product        = wc_get_product( $product_id );
 							$parent_product = false;
 
-							if ( ! $product_obj || $product_obj->get_status() !== 'publish' ) {
+							if ( ! $product || $product->get_status() !== 'publish' ) {
 								continue;
 							}
 
-							if ( $product_obj->is_type( 'variation' ) && ( $parent_product_id = $product_obj->get_parent_id() ) ) {
+							if ( $product->is_type( 'variation' ) && ( $parent_product_id = $product->get_parent_id() ) ) {
 								$parent_product = wc_get_product( $parent_product_id );
 							}
 
 							$products_data[ $product_id ]['id'] = $product_id;
 
-							$product_name = apply_filters( 'woosc_product_name', $product_obj->get_name() );
+							$product_name = apply_filters( 'woosc_product_name', $product->get_name() );
 
 							if ( $link !== 'no' ) {
-								$products_data[ $product_id ]['name'] = apply_filters( 'woosc_product_name', '<a ' . ( $link === 'yes_popup' ? 'class="woosq-link" data-id="' . $product_id . '" data-context="woosc"' : '' ) . ' href="' . $product_obj->get_permalink() . '" draggable="false" ' . ( $link === 'yes_blank' ? 'target="_blank"' : '' ) . '>' . wp_strip_all_tags( $product_name ) . '</a>', $product_obj );
+								$products_data[ $product_id ]['name'] = apply_filters( 'woosc_product_name', '<a ' . ( $link === 'yes_popup' ? 'class="woosq-link" data-id="' . $product_id . '" data-context="woosc"' : '' ) . ' href="' . $product->get_permalink() . '" draggable="false" ' . ( $link === 'yes_blank' ? 'target="_blank"' : '' ) . '>' . wp_strip_all_tags( $product_name ) . '</a>', $product );
 							} else {
-								$products_data[ $product_id ]['name'] = apply_filters( 'woosc_product_name', wp_strip_all_tags( $product_name ), $product_obj );
+								$products_data[ $product_id ]['name'] = apply_filters( 'woosc_product_name', wp_strip_all_tags( $product_name ), $product );
 							}
 
 							if ( $remove && ! $is_share ) {
 								$products_data[ $product_id ]['name'] .= ' <span class="woosc-remove" data-id="' . $product_id . '">' . self::localization( 'table_remove', esc_html__( 'remove', 'woo-smart-compare' ) ) . '</span>';
 							}
 
-							foreach ( $saved_fields as $saved_field ) {
-								switch ( $saved_field ) {
-									case 'image':
-										$image = $product_obj->get_image( self::get_setting( 'image_size', 'woosc-large' ), [
-											'draggable' => 'false',
-											'loading'   => self::get_setting( 'bar_print', 'yes' ) === 'yes' ? false : 'lazy'
-										] );
+							foreach ( $fields as $key => $field ) {
+								$field      = array_merge( [
+									'type'  => '',
+									'name'  => '',
+									'label' => ''
+								], $field );
+								$field_type = $field['type'];
+								$field_name = $field['name'];
 
-										if ( $link !== 'no' ) {
-											$products_data[ $product_id ]['image'] = apply_filters( 'woosc_product_image', '<a ' . ( $link === 'yes_popup' ? 'class="woosq-link" data-id="' . $product_id . '" data-context="woosc"' : '' ) . ' href="' . $product_obj->get_permalink() . '" draggable="false" ' . ( $link === 'yes_blank' ? 'target="_blank"' : '' ) . '>' . $image . '</a>', $product_obj );
-										} else {
-											$products_data[ $product_id ]['image'] = apply_filters( 'woosc_product_image', $image, $product_obj );
-										}
+								if ( $field_type === 'default' ) {
+									// default fields
+									switch ( $field_name ) {
+										case 'image':
+											$image = $product->get_image( self::get_setting( 'image_size', 'woosc-large' ), [
+												'draggable' => 'false',
+												'loading'   => self::get_setting( 'bar_print', 'yes' ) === 'yes' ? false : 'lazy'
+											] );
 
-										break;
-									case 'sku':
-										$products_data[ $product_id ]['sku'] = apply_filters( 'woosc_product_sku', $product_obj->get_sku(), $product_obj );
-										break;
-									case 'price':
-										$products_data[ $product_id ]['price'] = apply_filters( 'woosc_product_price', $product_obj->get_price_html(), $product_obj );
-										break;
-									case 'stock':
-										$products_data[ $product_id ]['stock'] = apply_filters( 'woosc_product_stock', wc_get_stock_html( $product_obj ), $product_obj );
-										break;
-									case 'add_to_cart':
-										$products_data[ $product_id ]['add_to_cart'] = apply_filters( 'woosc_product_add_to_cart', do_shortcode( '[add_to_cart style="" show_price="false" id="' . $product_id . '"]' ), $product_obj );
-										break;
-									case 'description':
-										$description = $product_obj->get_short_description();
-
-										if ( $product_obj->is_type( 'variation' ) ) {
-											$description = $product_obj->get_description();
-
-											if ( empty( $description ) && $parent_product ) {
-												$description = $parent_product->get_short_description();
+											if ( $link !== 'no' ) {
+												$products_data[ $product_id ]['image'] = apply_filters( 'woosc_product_image', '<a ' . ( $link === 'yes_popup' ? 'class="woosq-link" data-id="' . $product_id . '" data-context="woosc"' : '' ) . ' href="' . $product->get_permalink() . '" draggable="false" ' . ( $link === 'yes_blank' ? 'target="_blank"' : '' ) . '>' . $image . '</a>', $product );
+											} else {
+												$products_data[ $product_id ]['image'] = apply_filters( 'woosc_product_image', $image, $product );
 											}
-										}
 
-										$products_data[ $product_id ]['description'] = apply_filters( 'woosc_product_description', $description, $product_obj );
+											break;
+										case 'sku':
+											$products_data[ $product_id ]['sku'] = apply_filters( 'woosc_product_sku', $product->get_sku(), $product );
+											break;
+										case 'price':
+											$products_data[ $product_id ]['price'] = apply_filters( 'woosc_product_price', $product->get_price_html(), $product );
+											break;
+										case 'stock':
+											$products_data[ $product_id ]['stock'] = apply_filters( 'woosc_product_stock', wc_get_stock_html( $product ), $product );
+											break;
+										case 'add_to_cart':
+											$products_data[ $product_id ]['add_to_cart'] = apply_filters( 'woosc_product_add_to_cart', do_shortcode( '[add_to_cart style="" show_price="false" id="' . $product_id . '"]' ), $product );
+											break;
+										case 'description':
+											$description = $product->get_short_description();
 
-										break;
-									case 'content':
-										$content = $product_obj->get_description();
+											if ( $product->is_type( 'variation' ) ) {
+												$description = $product->get_description();
 
-										if ( $parent_product ) {
-											$content = $parent_product->get_description();
-										}
+												if ( empty( $description ) && $parent_product ) {
+													$description = $parent_product->get_short_description();
+												}
+											}
 
-										$products_data[ $product_id ]['content'] = apply_filters( 'woosc_product_content', do_shortcode( $content ), $product_obj );
+											$products_data[ $product_id ]['description'] = apply_filters( 'woosc_product_description', $description, $product );
 
-										break;
-									case 'additional':
-										ob_start();
-										wc_display_product_attributes( $product_obj );
-										$additional = ob_get_clean();
+											break;
+										case 'content':
+											$content = $product->get_description();
 
-										$products_data[ $product_id ]['additional'] = apply_filters( 'woosc_product_additional', $additional, $product_obj );
-										break;
-									case 'weight':
-										$products_data[ $product_id ]['weight'] = apply_filters( 'woosc_product_weight', wc_format_weight( $product_obj->get_weight() ), $product_obj );
-										break;
-									case 'dimensions':
-										$products_data[ $product_id ]['dimensions'] = apply_filters( 'woosc_product_dimensions', wc_format_dimensions( $product_obj->get_dimensions( false ) ), $product_obj );
-										break;
-									case 'rating':
-										$products_data[ $product_id ]['rating'] = apply_filters( 'woosc_product_rating', wc_get_rating_html( $product_obj->get_average_rating() ), $product_obj );
-										break;
-									case 'availability':
-										$product_availability                         = $product_obj->get_availability();
-										$products_data[ $product_id ]['availability'] = apply_filters( 'woosc_product_availability', $product_availability['availability'], $product_obj );
-										break;
-									default:
-										$products_data[ $product_id ][ $saved_field ] = apply_filters( 'woosc_product_' . $saved_field, '', $product_obj );
+											if ( $parent_product ) {
+												$content = $parent_product->get_description();
+											}
+
+											$products_data[ $product_id ]['content'] = apply_filters( 'woosc_product_content', do_shortcode( $content ), $product );
+
+											break;
+										case 'additional':
+											ob_start();
+											wc_display_product_attributes( $product );
+											$additional = ob_get_clean();
+
+											$products_data[ $product_id ]['additional'] = apply_filters( 'woosc_product_additional', $additional, $product );
+											break;
+										case 'weight':
+											$products_data[ $product_id ]['weight'] = apply_filters( 'woosc_product_weight', wc_format_weight( $product->get_weight() ), $product );
+											break;
+										case 'dimensions':
+											$products_data[ $product_id ]['dimensions'] = apply_filters( 'woosc_product_dimensions', wc_format_dimensions( $product->get_dimensions( false ) ), $product );
+											break;
+										case 'rating':
+											$products_data[ $product_id ]['rating'] = apply_filters( 'woosc_product_rating', wc_get_rating_html( $product->get_average_rating() ), $product );
+											break;
+										case 'availability':
+											$product_availability                         = $product->get_availability();
+											$products_data[ $product_id ]['availability'] = apply_filters( 'woosc_product_availability', $product_availability['availability'], $product );
+											break;
+									}
+								}
+
+								if ( $field_type === 'shortcode' ) {
+									$products_data[ $product_id ][ 'sc_' . $key ] = apply_filters( 'woosc_product_sc_' . $key, do_shortcode( str_replace( '{product_id}', $product_id, $field_name ) ), $product );
 								}
 							}
 						}
+
+						wp_reset_postdata();
 
 						$count           = count( $products_data );
 						$table_class     = 'woosc_table has-' . $count;
@@ -1897,8 +1877,12 @@ if ( ! function_exists( 'woosc_init' ) ) {
 
 						$table .= '</tr></thead><tbody>';
 
-						$cookie_fields = self::get_cookie_fields( $saved_fields );
-						$saved_fields  = array_unique( array_merge( $cookie_fields, $saved_fields ), SORT_REGULAR );
+						if ( $context === 'table' ) {
+							$cookie_fields = self::get_cookie_fields( array_keys( $fields ) );
+							$fields        = array_merge( array_flip( $cookie_fields ), $fields );
+						} else {
+							$cookie_fields = array_keys( $fields );
+						}
 
 						// display product name for printing
 						if ( self::get_setting( 'bar_print', 'yes' ) === 'yes' ) {
@@ -1917,37 +1901,58 @@ if ( ! function_exists( 'woosc_init' ) ) {
 
 						$tr = 1;
 
-						foreach ( $saved_fields as $saved_field ) {
-							if ( ! isset( self::$fields[ $saved_field ] ) ) {
-								continue;
+						foreach ( $fields as $key => $field ) {
+							$field       = array_merge( [
+								'type'  => '',
+								'name'  => '',
+								'label' => ''
+							], $field );
+							$field_type  = $field['type'];
+							$field_name  = $field['name'];
+							$field_label = $field['label'];
+							$field_key   = $field_name;
+
+							if ( $field_type === 'default' ) {
+								$field_label = self::$fields[ $field_name ];
 							}
 
-							$row = '';
+							if ( $field_type === 'attribute' ) {
+								$field_label = wc_attribute_label( $field_name );
+							}
 
-							if ( ! in_array( $saved_field, [
-								'attributes',
-								'custom_attributes',
-								'custom_fields'
-							] ) ) {
-								$row .= '<tr class="tr-default tr-' . ( $tr % 2 ? 'odd' : 'even' ) . ' tr-' . esc_attr( $saved_field ) . ' ' . ( ! in_array( $saved_field, $cookie_fields ) ? 'tr-hide' : '' ) . '"><td class="td-label">' . esc_html( self::$fields[ $saved_field ] ) . '</td>';
+							if ( $field_type === 'custom_attribute' ) {
+								$field_key   = 'ca_' . sanitize_title( trim( $field_name ) );
+								$field_label = ! empty( $field['label'] ) ? $field['label'] : $field_name;
+							}
 
-								foreach ( $products_data as $product_id => $product_data ) {
-									if ( $product_data['name'] !== '' ) {
-										if ( isset( $product_data[ $saved_field ] ) ) {
-											$row_value = $product_data[ $saved_field ];
-										} else {
-											$row_value = '';
-										}
+							if ( $field_type === 'custom_field' ) {
+								$field_key   = 'cf_' . sanitize_title( trim( $field_name ) );
+								$field_label = ! empty( $field['label'] ) ? $field['label'] : $field_name;
+							}
 
-										$row .= '<td>' . apply_filters( 'woosc_field_value', $row_value, $saved_field, $product_id, $product_data ) . '</td>';
+							if ( $field_type === 'shortcode' ) {
+								$field_key   = 'sc_' . $key;
+								$field_label = ! empty( $field['label'] ) ? $field['label'] : $field_name;
+							}
+
+							$row = '<tr class="tr-default tr-' . ( $tr % 2 ? 'odd' : 'even' ) . ' tr-' . esc_attr( $key ) . ' tr-' . esc_attr( $field_key ) . ' ' . ( ! in_array( $key, $cookie_fields ) ? 'tr-hide' : '' ) . '"><td class="td-label">' . esc_html( $field_label ) . '</td>';
+
+							foreach ( $products_data as $product_id => $product_data ) {
+								if ( $product_data['name'] !== '' ) {
+									if ( isset( $product_data[ $field_key ] ) ) {
+										$field_value = $product_data[ $field_key ];
 									} else {
-										$row .= '<td class="td-placeholder"></td>';
+										$field_value = '';
 									}
-								}
 
-								$row .= '</tr>';
-								$tr ++;
+									$row .= '<td>' . apply_filters( 'woosc_field_value', $field_value, $field_key, $product_id, $product_data ) . '</td>';
+								} else {
+									$row .= '<td class="td-placeholder"></td>';
+								}
 							}
+
+							$row .= '</tr>';
+							$tr ++;
 
 							if ( ! empty( $row ) ) {
 								$table .= $row;
@@ -2215,18 +2220,35 @@ if ( ! function_exists( 'woosc_init' ) ) {
 										<?php echo self::localization( 'bar_select_fields_desc', esc_html__( 'Select the fields to be shown. Others will be hidden. Drag and drop to rearrange the order.', 'woo-smart-compare' ) ); ?>
 										<ul class="woosc-settings-fields">
 											<?php
-											if ( is_array( self::get_setting( 'fields' ) ) ) {
-												$saved_fields = self::get_setting( 'fields' );
-											} else {
-												$saved_fields = array_keys( self::$fields );
-											}
+											$fields        = self::get_fields();
+											$fields_keys   = array_keys( $fields );
+											$cookie_fields = self::get_cookie_fields( $fields_keys );
+											$fields_merge  = array_unique( array_merge( $cookie_fields, $fields_keys ), SORT_REGULAR );
 
-											$cookie_fields = self::get_cookie_fields( $saved_fields );
-											$fields_merge  = array_unique( array_merge( $cookie_fields, $saved_fields ), SORT_REGULAR );
+											foreach ( $fields_merge as $field_key ) {
+												if ( isset( $fields[ $field_key ] ) ) {
+													$field       = array_merge( [
+														'type'  => '',
+														'name'  => '',
+														'label' => ''
+													], $fields[ $field_key ] );
+													$field_type  = $field['type'];
+													$field_name  = $field['name'];
+													$field_label = $field['label'];
 
-											foreach ( $fields_merge as $field ) {
-												if ( isset( self::$fields[ $field ] ) ) {
-													echo '<li class="woosc-settings-field-li"><input type="checkbox" class="woosc-settings-field" value="' . $field . '" ' . ( in_array( $field, $cookie_fields, false ) ? 'checked' : '' ) . '/><span class="label">' . self::$fields[ $field ] . '</span></li>';
+													if ( $field_type === 'default' ) {
+														$field_label = self::$fields[ $field_name ];
+													}
+
+													if ( $field_type === 'attribute' ) {
+														$field_label = wc_attribute_label( $field_name );
+													}
+
+													if ( $field_type === 'custom_attribute' || $field_type === 'custom_field' || $field_type === 'shortcode' ) {
+														$field_label = ! empty( $field['label'] ) ? $field['label'] : $field_name;
+													}
+
+													echo '<li class="woosc-settings-field-li"><input type="checkbox" class="woosc-settings-field" value="' . esc_attr( $field_key ) . '" ' . ( in_array( $field_key, $cookie_fields ) ? 'checked' : '' ) . '/><span class="move">' . esc_html( $field_label ) . '</span></li>';
 												}
 											}
 											?>
@@ -2316,7 +2338,8 @@ if ( ! function_exists( 'woosc_init' ) ) {
 				}
 
 				function get_cookie_fields( $saved_fields ) {
-					$cookie_fields = 'woosc_fields_' . md5( 'woosc' . get_current_user_id() );
+					$hash          = self::get_setting( 'hash', '6' );
+					$cookie_fields = 'woosc_fields_' . $hash . '_' . md5( 'woosc' . get_current_user_id() );
 
 					if ( isset( $_COOKIE[ $cookie_fields ] ) && ! empty( $_COOKIE[ $cookie_fields ] ) ) {
 						$fields = explode( ',', sanitize_text_field( $_COOKIE[ $cookie_fields ] ) );
@@ -2328,7 +2351,8 @@ if ( ! function_exists( 'woosc_init' ) ) {
 				}
 
 				function get_cookie_settings( $saved_settings ) {
-					$cookie_settings = 'woosc_settings_' . md5( 'woosc' . get_current_user_id() );
+					$hash            = self::get_setting( 'hash', '6' );
+					$cookie_settings = 'woosc_settings_' . $hash . '_' . md5( 'woosc' . get_current_user_id() );
 
 					if ( isset( $_COOKIE[ $cookie_settings ] ) ) {
 						$settings = explode( ',', sanitize_text_field( $_COOKIE[ $cookie_settings ] ) );
@@ -2337,18 +2361,6 @@ if ( ! function_exists( 'woosc_init' ) ) {
 					}
 
 					return $settings;
-				}
-
-				function generate_key() {
-					$key         = '';
-					$key_str     = apply_filters( 'woosc_key_characters', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' );
-					$key_str_len = strlen( $key_str );
-
-					for ( $i = 0; $i < apply_filters( 'woosc_key_length', 6 ); $i ++ ) {
-						$key .= $key_str[ random_int( 0, $key_str_len - 1 ) ];
-					}
-
-					return apply_filters( 'woosc_generate_key', $key );
 				}
 
 				function exists_key( $key ) {
@@ -2509,7 +2521,6 @@ if ( ! function_exists( 'woosc_init' ) ) {
 					}
 
 					if ( ! empty( $products ) ) {
-						$url  = '';
 						$hash = md5( $products );
 
 						if ( ! $key = get_option( 'woosc_hash_' . $hash ) ) {
@@ -2538,6 +2549,55 @@ if ( ! function_exists( 'woosc_init' ) ) {
 						}
 					} else {
 						echo self::localization( 'table_empty', esc_html__( 'No product is added to the comparison table.', 'woo-smart-compare' ) );
+					}
+
+					wp_die();
+				}
+
+				function ajax_add_field() {
+					$type    = isset( $_POST['type'] ) ? sanitize_key( $_POST['type'] ) : '';
+					$field   = isset( $_POST['field'] ) ? sanitize_text_field( urldecode( $_POST['field'] ) ) : '';
+					$setting = isset( $_POST['setting'] ) ? sanitize_key( $_POST['setting'] ) : '';
+
+					if ( ! empty( $type ) && ! empty( $field ) && ! empty( $setting ) ) {
+						$key   = self::generate_key( 4, true );
+						$title = '';
+
+						switch ( $type ) {
+							case 'default':
+								if ( isset( self::$fields[ $field ] ) ) {
+									$title = self::$fields[ $field ];
+								}
+
+								break;
+							case 'attribute':
+								$title = wc_attribute_label( $field );
+
+								break;
+							case 'custom_attribute':
+								$title = esc_html__( 'Custom attribute', 'woo-smart-compare' );
+
+								break;
+							case 'custom_field':
+								$title = esc_html__( 'Custom field', 'woo-smart-compare' );
+
+								break;
+							case 'shortcode':
+								$title = esc_html__( 'Shortcode', 'woo-smart-compare' );
+
+								break;
+						}
+
+						echo '<div class="woosc-field woosc-field-' . $key . ' woosc-field-type-' . $type . '">';
+						echo '<span class="move">' . esc_html__( 'move', 'woo-smart-compare' ) . '</span>';
+						echo '<span class="info">';
+						echo '<span class="title">' . esc_html( $title ) . '</span>';
+						echo '<input class="woosc-field-type" type="hidden" name="woosc_settings[' . $setting . '][' . $key . '][type]" value="' . esc_attr( $type ) . '"/>';
+						echo '<input class="woosc-field-name" type="text" name="woosc_settings[' . $setting . '][' . $key . '][name]" value="' . esc_attr( $field ) . '" placeholder="' . esc_attr__( 'name', 'woo-smart-compare' ) . '"/>';
+						echo '<input class="woosc-field-label" type="text" name="woosc_settings[' . $setting . '][' . $key . '][label]" value="" placeholder="' . esc_attr__( 'label', 'woo-smart-compare' ) . '"/>';
+						echo '</span>';
+						echo '<span class="remove">&times;</span>';
+						echo '</div>';
 					}
 
 					wp_die();
@@ -2627,6 +2687,118 @@ if ( ! function_exists( 'woosc_init' ) ) {
 
 				public static function get_count() {
 					return self::woosc_get_count();
+				}
+
+				public static function get_settings() {
+					return apply_filters( 'woosc_get_settings', self::$settings );
+				}
+
+				public static function get_fields( $context = '' ) {
+					if ( $context === 'quick_table' ) {
+						$saved_fields6 = self::get_setting( 'quick_fields6' );
+
+						if ( empty( $saved_fields6 ) ) {
+							// get old data - before 6.0
+
+							if ( is_array( self::get_setting( 'quick_fields' ) ) ) {
+								$saved_fields = self::get_setting( 'quick_fields' );
+							} else {
+								$saved_fields = array_keys( self::$fields );
+							}
+
+							foreach ( $saved_fields as $saved_field ) {
+								if ( ! in_array( $saved_field, [
+									'attributes',
+									'custom_attributes',
+									'custom_fields'
+								] ) ) {
+									$sk = self::generate_key( 4, true );
+
+									$saved_fields6[ $sk ] = [
+										'type' => 'default',
+										'name' => $saved_field
+									];
+								}
+							}
+						}
+					} else {
+						$saved_fields6 = self::get_setting( 'fields6' );
+
+						if ( empty( $saved_fields6 ) ) {
+							// get old data - before 6.0
+
+							if ( is_array( self::get_setting( 'fields' ) ) ) {
+								$saved_fields = self::get_setting( 'fields' );
+							} else {
+								$saved_fields = array_keys( self::$fields );
+							}
+
+							foreach ( $saved_fields as $saved_field ) {
+								if ( ! in_array( $saved_field, [
+									'attributes',
+									'custom_attributes',
+									'custom_fields'
+								] ) ) {
+									$sk = self::generate_key( 4, true );
+
+									$saved_fields6[ $sk ] = [
+										'type' => 'default',
+										'name' => $saved_field
+									];
+								}
+							}
+						}
+					}
+
+					return apply_filters( 'woosc_get_fields', $saved_fields6, $context );
+				}
+
+				public static function get_setting( $name, $default = false ) {
+					$settings = self::get_settings();
+
+					if ( ! empty( $settings ) ) {
+						if ( isset( $settings[ $name ] ) ) {
+							$setting = $settings[ $name ];
+						} else {
+							$setting = $default;
+						}
+					} else {
+						$setting = get_option( 'woosc_' . $name, $default );
+					}
+
+					return apply_filters( 'woosc_get_setting', $setting, $name, $default );
+				}
+
+				public static function localization( $key = '', $default = '' ) {
+					$str = '';
+
+					if ( ! empty( $key ) && ! empty( self::$localization[ $key ] ) ) {
+						$str = self::$localization[ $key ];
+					} elseif ( ! empty( $default ) ) {
+						$str = $default;
+					}
+
+					return apply_filters( 'woosc_localization_' . $key, $str );
+				}
+
+				public static function generate_key( $length = 6, $lower = false ) {
+					$key         = '';
+					$key_str     = apply_filters( 'woosc_key_characters', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' );
+					$key_str_len = strlen( $key_str );
+
+					for ( $i = 0; $i < apply_filters( 'woosc_key_length', $length ); $i ++ ) {
+						$key .= $key_str[ random_int( 0, $key_str_len - 1 ) ];
+					}
+
+					if ( is_numeric( $key ) ) {
+						$key = self::generate_key();
+					}
+
+					if ( $lower ) {
+						$key = strtolower( $key );
+					}
+
+					return apply_filters( 'woosc_generate_key', $key );
 				}
 			}
 

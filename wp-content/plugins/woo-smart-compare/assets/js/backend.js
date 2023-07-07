@@ -9,11 +9,11 @@
     $('.woosc_icon_picker').fontIconPicker();
 
     $('.woosc-fields').sortable({
-      handle: '.label',
+      handle: '.move',
     });
 
     $('.woosc-attributes').sortable({
-      handle: '.label',
+      handle: '.move',
     });
 
     $('#woosc_settings_cats').selectWoo();
@@ -25,6 +25,36 @@
 
   $(document).on('change', 'select.woosc_button_icon', function() {
     woosc_button_icon();
+  });
+
+  $(document).on('click touch', '.woosc-field .remove', function(e) {
+    $(this).closest('.woosc-field').remove();
+  });
+
+  $(document).on('click touch', '.woosc-field-add', function(e) {
+    e.preventDefault();
+
+    var $this = $(this);
+    var $wrapper = $this.closest('.woosc-fields-wrapper');
+    var $fields = $wrapper.find('.woosc-fields');
+    var $types = $wrapper.find('select.woosc-field-types');
+    var field = $types.val();
+    var type = $types.find('option:selected').data('type');
+    var setting = $this.data('setting');
+
+    var data = {
+      action: 'woosc_add_field',
+      type: type,
+      field: field,
+      setting: setting,
+    };
+
+    $wrapper.addClass('woosc-fields-wrapper-loading');
+
+    $.post(ajaxurl, data, function(response) {
+      $fields.append(response);
+      $wrapper.removeClass('woosc-fields-wrapper-loading');
+    });
   });
 
   function woosc_button_icon() {

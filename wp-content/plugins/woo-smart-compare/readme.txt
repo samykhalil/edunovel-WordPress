@@ -4,7 +4,7 @@ Donate link: https://wpclever.net
 Tags: woocommerce, woo, wpc, smart, compare, product-compare, smart-compare
 Requires at least: 4.0
 Tested up to: 6.2
-Stable tag: 5.5.0
+Stable tag: 6.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -94,6 +94,12 @@ Example:
 `echo do_shortcode('[woosc id="99"]');`
 
 == Changelog ==
+
+= 6.0.1 =
+* Added: Shortcode field
+
+= 6.0.0 =
+* Updated: New interface for fields manager
 
 = 5.5.0 =
 * Fixed: Configure fields for quick comparison table

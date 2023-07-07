@@ -2,9 +2,9 @@
 /**
 * Plugin Name: Contact Form Entries
 * Description: Save form submissions to the database from <a href="https://wordpress.org/plugins/contact-form-7/">Contact Form 7</a>, <a href="https://wordpress.org/plugins/ninja-forms/">Ninja Forms</a>, <a href="https://elementor.com/widgets/form-widget/">Elementor Forms</a> and <a href="https://wordpress.org/plugins/wpforms-lite/">WP Forms</a>.
-* Version: 1.3.0
+* Version: 1.3.1
 * Requires at least: 3.8
-* Tested up to: 6.0
+* Tested up to: 6.2
 * Author URI: https://www.crmperks.com
 * Plugin URI: https://www.crmperks.com/plugins/contact-form-plugins/crm-perks-forms/
 * Author: CRM Perks
@@ -26,7 +26,7 @@ class vxcf_form {
   public static $type = "vxcf_form";
   public static $path = ''; 
 
-  public static  $version = '1.3.0';
+  public static  $version = '1.3.1';
   public static $upload_folder = 'crm_perks_uploads';
   public static $db_version='';  
   public static $base_url='';  
@@ -219,6 +219,7 @@ public function entries_shortcode($atts){
 $fields=vxcf_form::get_form_fields($form_id);
 $fields['created']=array('name'=>'created','_id'=>'created', 'label'=> __('Created', 'contact-form-entries'));
 
+
   $col_end=count($fields);
   if(!empty($atts['cols'])){
    $col_end=(int)$atts['cols'];   
@@ -248,7 +249,7 @@ vxcf_form::$form_fields=$fields;
     $css='';
     if(!empty($atts['font-size'])){
     // $atts['font-size']='x-small'; 
-      $css=' style="font-size: '.$atts['font-size'].'"';     
+      $css=' style="font-size: '.esc_attr($atts['font-size']).'"';     
     }
   
 
@@ -256,20 +257,20 @@ vxcf_form::$form_fields=$fields;
     if(!empty($atts['class'])){
      $class.=$atts['class'];   
     }
-   $class=' class="'.$class.'"';   
+   $class=' class="'.esc_attr($class).'"';   
   
       $table_id='';
     if(!empty($atts['id'])){
-   $table_id='id="'.$atts['font-size'].'"';   
+   $table_id='id="'.esc_attr($atts['font-size']).'"';   
   }
   //var_dump($fields);
   $limit='20';
     if(!empty($atts['limit'])){
-   $limit=$atts['limit'];   
+   $limit=(int)$atts['limit'];   
   }  
   $start='0';
     if(!empty($atts['start'])){
-   $start=$atts['start'];   
+   $start=(int)$atts['start'];   
   }
   $search=$export='';
   if($this->do_actions() ){
@@ -288,7 +289,7 @@ vxcf_form::$form_fields=$fields;
   }
     $page_size='3';
     if(!empty($atts['per-page'])){
-   $page_size=$atts['per-page'];   
+   $page_size=(int)$atts['per-page'];   
   }  
  $offset=$this->time_offset(); 
   $req=array('start'=>$start,'vx_links'=>'false');
@@ -388,6 +389,7 @@ if(is_array($arr) && count($arr)>0){
 
 public function create_entry($lead,$form,$type,$info='',$save=true,$entry_id=''){
 if(!is_array($info)){ $info=array(); }
+
 
 if(is_array($lead) && count($lead)>0){
   $data=vxcf_form::get_data_object();
@@ -674,7 +676,7 @@ $this->create_entry($lead,$form_arr,'wc','',$track);
 
 }
 public function create_entry_cf($form){ 
-
+    
 $form_id=$form->id();
 $track=$this->track_form_entry('cf',$form_id);
 
@@ -1279,7 +1281,7 @@ $folder=$upload['folder'];
 // ini_set('display_errors', '1');
 //ini_set('display_startup_errors', '1');
 //error_reporting(E_ALL);
-        if($upload_path){
+        if($upload_path){ 
             foreach($uploaded_files_form as $k=>$file_arr){
                   if(empty($file_arr)){
                       continue;
@@ -1289,7 +1291,9 @@ $folder=$upload['folder'];
                 }
                 $files=array();
                 foreach($file_arr as $file){
-                
+                if(empty($file)){
+                      continue;
+                  }
                   if(strpos($file,$base_url) === 0){
                   $file=str_replace($base_url,trim(ABSPATH,'/'),$file);     
                   } 
@@ -2438,7 +2442,7 @@ $forms_arr=wpforms()->form->get( $id );
 if(!empty($forms_arr)){
 $form=json_decode($forms_arr->post_content,true);
 $fields=array();
-foreach($form['fields'] as $v){
+foreach($form['fields'] as $v){ 
     $type=$v['type'];
     if($type == 'name'){ $type='text'; }
     if($type == 'payment-select'){ $type='select'; }
@@ -2448,9 +2452,9 @@ foreach($form['fields'] as $v){
     if($type == 'date-time'){ $type='date'; }
     if($type == 'address'){ $type='textarea'; }
     if($type == 'phone'){ $type='tel'; }
-
+$label=isset($v['label']) ? $v['label'] : $type;
   //  if(in_array($type,array('text','textarea','email','number','hidden','select','checkbox','radio','url','password','tel','date','file','number-slider'))){
-          $field=array('id'=>$v['id'],'name'=>$v['id'],'label'=>$v['label'],'type'=>$type); 
+          $field=array('id'=>$v['id'],'name'=>$v['id'],'label'=>$label,'type'=>$type); 
   $field['req']=!empty($v['required']) ? true : false; 
         if(in_array($type,array('radio','checkbox','select'))){
         $is_val=false;
@@ -2790,7 +2794,7 @@ header("Content-Transfer-Encoding: binary");
   $leads=$data['result'];
 $meta=get_option(vxcf_form::$id.'_meta',array());
 $sep=','; if(!empty($meta['sep'])){ $sep=trim($meta['sep']); }
-
+$upload=vxcf_form::get_upload_dir();
 $extra_keys=array('vxbrowser'=>'browser','vxurl'=>'url','vxscreen'=>'screen','vxcreated'=>'created','vxupdated'=>'updated');
   $fields=vxcf_form::$form_fields;
 //echo json_encode($fields);  die();   echo json_encode($leads);
@@ -2823,7 +2827,18 @@ $extra_keys=array('vxbrowser'=>'browser','vxurl'=>'url','vxscreen'=>'screen','vx
    $val=$lead_row[$extra_keys[$k]];
       }   
   }
+
     if(is_array($val)){
+        if(isset($field['type']) && in_array($field['type'],array('file','thumb')) && !empty($val) && self::$is_pr){
+         $temp_val=array();   
+        foreach($val as $kk=>$vv){ 
+        if(filter_var($vv,FILTER_VALIDATE_URL) === false){  
+  $temp_val[]=$upload['url'].$vv;     
+    }   
+        }
+     $val=$temp_val;   
+    }
+    
       $val=implode(' - ',$val);    
       }
      /*  if(function_exists('mb_convert_encoding')){

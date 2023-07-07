@@ -2,7 +2,19 @@ ul.woosc-fields, ul.woosc-attributes {
     position: relative;
 }
 
-li.woosc-fields-item .label, li.woosc-attributes-item .label {
+li.woosc-fields-item[class*=" woosc-fields-item-pa_"] .move:after {
+    content: "attribute";
+    font-size: 10px;
+    font-style: italic;
+    line-height: 1;
+    color: #666666;
+    margin-left: 5px;
+    background-color: #fafafa;
+    padding: 2px 4px;
+    border-radius: 2px;
+}
+
+li.woosc-fields-item .move, li.woosc-attributes-item .move {
     cursor: move;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -15,8 +27,100 @@ li.woosc-fields-item .label, li.woosc-attributes-item .label {
     width: 100% !important;
 }
 
-/* Icon Picker */
+/* Ver 6.0 */
+.woosc-fields-wrapper.woosc-fields-wrapper-loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
 
+.woosc-fields-wrapper .woosc-fields {
+    position: relative;
+    margin: 10px 0;
+    max-width: 720px;
+    border-top: 1px dashed #dddddd;
+    border-bottom: 1px dashed #dddddd;
+}
+
+.woosc-fields-wrapper .woosc-fields .woosc-field {
+    padding: 5px 0;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px dashed #dddddd;
+}
+
+.woosc-fields-wrapper .woosc-fields .woosc-field:last-child {
+    border-bottom: none;
+}
+
+.woosc-fields-wrapper .woosc-fields .woosc-field:nth-child(2n+1) {
+    background-color: #fafafa;
+}
+
+.woosc-fields-wrapper .woosc-fields .woosc-field > * {
+    margin: 0 5px;
+}
+
+.woosc-fields-wrapper .woosc-fields .woosc-field .move {
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    border-radius: 2px;
+    text-align: center;
+    font-size: 0;
+    flex: 0 0 30px;
+    background-color: #eeeeee;
+    cursor: move;
+}
+
+.woosc-fields-wrapper .woosc-fields .woosc-field .move:before {
+    content: "\f545";
+    font-family: dashicons;
+    font-size: 10px;
+    color: #999999;
+}
+
+.woosc-fields-wrapper .woosc-fields .woosc-field .info {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+}
+
+.woosc-fields-wrapper .woosc-fields .woosc-field .info > * {
+    margin: 0 5px;
+}
+
+.woosc-fields-wrapper .woosc-fields .woosc-field .info .woosc-field-name {
+    flex-grow: 1;
+}
+
+.woosc-fields-wrapper .woosc-fields .woosc-field .remove {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    line-height: 30px;
+    border-radius: 2px;
+    text-align: center;
+    background-color: #eeeeee;
+    cursor: pointer;
+}
+
+.woosc-fields-wrapper .woosc-fields .woosc-field.woosc-field-type-default .woosc-field-name, .woosc-fields-wrapper .woosc-fields .woosc-field.woosc-field-type-default .woosc-field-label, .woosc-fields-wrapper .woosc-fields .woosc-field.woosc-field-type-attribute .woosc-field-name, .woosc-fields-wrapper .woosc-fields .woosc-field.woosc-field-type-attribute .woosc-field-label {
+    display: none;
+}
+
+.woosc-fields-wrapper .woosc-fields .woosc-field.woosc-field-type-attribute .title:after {
+    content: "attribute";
+    font-size: 10px;
+    font-style: italic;
+    line-height: 1;
+    color: #666666;
+    margin-left: 5px;
+    background-color: #fafafa;
+    padding: 2px 4px;
+    border-radius: 2px;
+}
+
+/* Icon Picker */
 .wpclever_settings_page .icons-selector {
     background-color: #ffffff;
     border-radius: 3px;
@@ -32,9 +136,9 @@ li.woosc-fields-item .label, li.woosc-attributes-item .label {
     width: 330px;
     padding: 10px;
     border-radius: 3px;
-    -moz-box-shadow: 0 4px 10px rgb(0 0 0 / 0.05);
-    -webkit-box-shadow: 0 4px 10px rgb(0 0 0 / 5%);
-    box-shadow: 0 4px 10px rgb(0 0 0 / 5%);
+    -moz-box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    -webkit-box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     border: 1px solid #8c8f94;
 }
 
@@ -64,3 +168,5 @@ li.woosc-fields-item .label, li.woosc-attributes-item .label {
     background-color: #2271b1;
     color: #ffffff;
 }
+
+/*# sourceMappingURL=backend.css.map */
