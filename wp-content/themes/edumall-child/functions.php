@@ -1809,9 +1809,7 @@ function get_page_url($template_name)
 		]
 	]);
 	if (!empty($pages)) {
-		foreach ($pages as $pages__value) {
-			return get_permalink($pages__value->ID);
-		}
+		return get_permalink($pages[0]->ID);
 	}
 	return get_bloginfo('url');
 }
