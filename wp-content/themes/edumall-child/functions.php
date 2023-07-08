@@ -1803,13 +1803,15 @@ function get_page_url($template_name)
 		'meta_query' => [
 			[
 				'key' => '_wp_page_template',
-				'value' => $template_name . '.php',
+				'value' => 'templates/' . $template_name . '.php',
 				'compare' => '='
 			]
 		]
 	]);
 	if (!empty($pages)) {
-		return get_permalink($pages[0]->ID);
+		foreach ($pages as $pages__value) {
+			return get_permalink($pages__value->ID);
+		}
 	}
 	return get_bloginfo('url');
 }
