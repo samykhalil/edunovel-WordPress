@@ -1,0 +1,196 @@
+.myaccount {
+}
+
+.my-account-profile .fn {
+	font-size: 28px;
+}
+
+.myaccount button {
+	padding: 0 20px !important;
+}
+
+.myaccount .heading .name {
+	font-size: 25px;
+	display: flex;
+	gap: 10px;
+}
+
+.myaccount .heading .name img {
+	border-radius: 50%;
+	height: fit-content;
+}
+
+.myaccount .heading {
+	display: flex;
+	justify-content: space-between;
+	border: 1px solid #ccc;
+	padding: 10px;
+	margin-bottom: 10px;
+	align-items: center;
+}
+
+.myaccount .changepassword {
+	display: none;
+}
+
+.myaccount .ordersContent {
+	display: none;
+}
+
+.myaccount .ordersContent h6 {
+	text-align: center;
+	margin: 50px 0;
+}
+
+.myaccount .woocommerce-orders-table__row {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+
+.myaccount .woocommerce-orders-table__row .woocommerce-orders-table__cell {
+	width: 33.333%;
+	text-align: center;
+}
+
+.myaccount .woocommerce-orders-table__cell-order-actions {
+	width: 50% !important;
+}
+
+.myaccount .woocommerce-orders-table__cell-order-actions a {
+	margin: 0 5px;
+}
+
+.inputContainer {
+	position: relative;
+	margin-bottom: 10px;
+}
+
+@keyframes spinner-border {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.spinner-border {
+	position: absolute;
+	left: 10px;
+	top: 12px;
+	width: 32px;
+	height: 32px;
+	width: 2rem;
+	height: 2rem;
+	vertical-align: -0.125em;
+	border: 0.25em solid currentColor;
+	border-right-color: transparent;
+	border-radius: 50%;
+	-webkit-animation: 0.75s linear infinite spinner-border;
+	animation: 0.75s linear infinite spinner-border;
+}
+
+.assignTo {
+	display: flex;
+	justify-content: space-between;
+}
+
+.assignTo p {
+	flex: 1;
+}
+
+.assignTo button {
+	background: #f82c2c;
+	color: #fff;
+	height: 27px;
+	width: 40px;
+	font-size: 20px;
+	border: 0;
+	align-self: flex-start;
+	align-items: center;
+	display: flex;
+	padding: 0;
+	justify-content: center;
+}
+
+.status .error {
+	color: #721c24;
+	background-color: #f8d7da;
+	border-color: #f5c6cb;
+	position: relative;
+	padding: 0.75rem 1.25rem;
+	margin-bottom: 1rem;
+	border: 1px solid transparent;
+	border-radius: 0.25rem;
+}
+
+.status .success {
+	color: #155724;
+	background-color: #d4edda;
+	border-color: #c3e6cb;
+	position: relative;
+	padding: 0.75rem 1.25rem;
+	margin-bottom: 1rem;
+	border: 1px solid transparent;
+	border-radius: 0.25rem;
+}
+
+/* The Modal (background) */
+.modal {
+	display: none;
+	/* Hidden by default */
+	position: fixed;
+	/* Stay in place */
+	z-index: 1;
+	/* Sit on top */
+	left: 0;
+	top: 0;
+	width: 100%;
+	/* Full width */
+	height: 100%;
+	/* Full height */
+	overflow: auto;
+	/* Enable scroll if needed */
+	background-color: rgb(0, 0, 0);
+	/* Fallback color */
+	background-color: rgba(0, 0, 0, 0.4);
+	/* Black w/ opacity */
+	z-index: 99;
+}
+
+.modal .footer {
+	display: flex;
+	justify-content: space-around;
+}
+
+.modal .deleteuser {
+	background: #ff0000;
+}
+
+/* Modal Content/Box */
+.modal-content {
+	background-color: #fefefe;
+	margin: 15% auto;
+	/* 15% from the top and centered */
+	padding: 20px;
+	border: 1px solid #888;
+	width: 80%;
+	/* Could be more or less, depending on screen size */
+	position: relative;
+}
+
+/* The Close Button */
+.close {
+	color: #aaa;
+	float: right;
+	font-size: 28px;
+	font-weight: bold;
+	position: absolute;
+	top: 0;
+	left: 10px;
+}
+
+.close:hover,
+.close:focus {
+	color: black;
+	text-decoration: none;
+	cursor: pointer;
+}
