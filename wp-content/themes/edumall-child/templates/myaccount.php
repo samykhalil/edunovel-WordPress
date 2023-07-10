@@ -88,22 +88,7 @@ get_header();
             <div class="userContent">
                <div class="ordersContent">
                   <?php
-                  // $orders = wc_get_orders([
-                  //    'type'        => 'shop_order',
-                  //    'limit'       => 5,
-                  //    'customer_id' => $user->ID,
-                  //    // 'status'      => $paid_status,
-                  //    'meta_query' => array(
-                  //       array(
-                  //          'key' => '_contains_subscriptions',
-                  //          'value' => 1,
-                  //       ),
-                  //       array(
-                  //          'key' => '_contains_non_subscriptions',
-                  //          'compare' => 'NOT EXISTS',
-                  //       ),
-                  //    ),
-                  // ]);
+
                   $query = "
     SELECT o.ID, o.post_date
     FROM {$wpdb->prefix}posts AS o
@@ -159,9 +144,7 @@ get_header();
 
                      foreach ($orders as $customer_order) {
                         $order      = wc_get_order($customer_order); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.OverrideProhibited
-                        if (!class_exists('WC_Subscriptions')) {
-                           return;
-                        }
+
 
                         $item_count = $order->get_item_count() - $order->get_item_count_refunded();
                      ?>
@@ -196,6 +179,7 @@ get_header();
                                  <?php elseif ('renew' === $column_id) :
                                     $ex =  explode(":", $course_time);
                                     $order_date_created = $order->get_date_created();
+
                                     $order_end_date = new DateTime($order_date_created);
                                     // Increment the date by one month
                                     $order_end_date_timestamp  = $order_end_date->modify('+' . $ex[0] . ' seconds');
@@ -230,17 +214,8 @@ get_header();
                                     ?>
 
                                  <?php elseif ('order-actions' === $column_id) : ?>
-                                    <?php
-                                    // $actions = wc_get_account_orders_actions($order);
 
-                                    // if (!empty($actions)) {
-                                    //    foreach ($actions as $key => $action) { // phpcs:ignore WordPress.WP.GlobalVariablesOverride.OverrideProhibited
-                                    //       if ($key == 'pay') continue;
-                                    //       echo '<a href="' . esc_url($action['url']) . '" class="woocommerce-button button ' . sanitize_html_class($key) . '">' . esc_html($action['name']) . '</a>';
-                                    //    }
-                                    // }
-                                    ?>
-                                    <a href="#" class="woocommerce-button button reBuy" data-order_id="<?php echo $order->id ?>">إعادة الشراء</a>
+                                    <a href="#" class="woocommerce-button button reBuy" data-order_id="<?php echo $order->get_id(); ?>">إعادة الشراء</a>
                                  <?php endif; ?>
                               </div>
                            <?php endforeach; ?>
@@ -248,23 +223,6 @@ get_header();
                         </div>
                      <?php
                      }
-                     // $users_subscriptions = wcs_get_users_subscriptions($user->ID);
-                     // if (sizeof($users_subscriptions)) {
-                     //    foreach ($users_subscriptions as $subscription) {
-                     //       $data = $subscription->get_data();
-
-
-                     //       // if(count($users_subscriptions) > 0){
-                     //          echo $user->user_login. 'YEssss <br />';
-                     //          echo "<pre >";
-                     //          print_r( $data ); // D
-                     //          // print_r($users_subscriptions);
-                     //          echo "</pre >";
-                     //       // }
-                     //    }
-
-                     // }
-
                   } else {
                      ?>
                      <h6>لا يوجد طلبات</h6>
@@ -295,7 +253,7 @@ get_header();
          echo 'No users found.';
       } ?>
       <?php
-      echo get_current_user_id();
+
       $query = "
     SELECT o.ID, o.post_date
     FROM {$wpdb->prefix}posts AS o
@@ -326,14 +284,7 @@ get_header();
       $parentOrders = $wpdb->get_results($query);
 
 
-      // $parentOrders = wc_get_orders([
-      //    'type'        => 'shop_order',
-      //    'status' => array('wc-processing', 'wc-on-hold', 'wc-completed', 'wc-refunded', 'wc-failed', 'wc-pending', 'wc-active'),
 
-      //    'customer_id' => get_current_user_id(),
-      //    // 'status'      => $paid_status,
-      // ]);
-      //   print_r($parentOrders);
       if (count($parentOrders) > 0) {
       ?>
          <h2>طلباتي </h2>
@@ -360,9 +311,7 @@ get_header();
          <?php
          foreach ($parentOrders as $customer_order) {
             $order      = wc_get_order($customer_order); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.OverrideProhibited
-            if (!class_exists('WC_Subscriptions')) {
-               return;
-            }
+
 
             $item_count = $order->get_item_count() - $order->get_item_count_refunded();
          ?>
@@ -432,17 +381,7 @@ get_header();
                         ?>
 
                      <?php elseif ('order-actions' === $column_id) : ?>
-                        <?php
-                        $actions = wc_get_account_orders_actions($order);
-
-                        // if (!empty($actions)) {
-                        //    foreach ($actions as $key => $action) { // phpcs:ignore WordPress.WP.GlobalVariablesOverride.OverrideProhibited
-                        //       if ($key == 'pay') continue;
-                        //       echo '<a href="' . esc_url($action['url']) . '" class="woocommerce-button button ' . sanitize_html_class($key) . '">' . esc_html($action['name']) . '</a>';
-                        //    }
-                        // }
-                        ?>
-                        <a href="#" class="woocommerce-button button reBuy" data-order_id="<?php echo $order->id ?>">إعادة الشراء</a>
+                        <a href="#" class="woocommerce-button button reBuy" data-order_id="<?php echo $order->get_id(); ?>">إعادة الشراء</a>
                      <?php endif; ?>
                   </div>
                <?php endforeach; ?>
