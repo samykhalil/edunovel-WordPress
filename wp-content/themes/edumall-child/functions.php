@@ -182,36 +182,6 @@ function prefix_checkout_create_order_line_item($item, $cart_item_key, $values, 
 }
 add_action('woocommerce_checkout_create_order_line_item', 'prefix_checkout_create_order_line_item', 10, 4);
 
-// add_action('woocommerce_cart_calculate_totals', 'apply_fixed_discount_on_cart_items');
-
-// function apply_fixed_discount_on_cart_items($cart)
-// {
-//     $packageCount = [];
-
-//     foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
-//         $bundle_id = wc_pb_get_bundled_cart_item_container($cart_item);
-//         echo $bundle_id . '<br />';
-//         die;
-
-//         if ($bundle_id && has_term(317, 'product_cat', $bundle_id)) {
-//             $packageCount[$bundle_id] = $bundle_id;
-//         }
-//     }
-//     $packageCount = count(array_unique($packageCount));
-//     if ($packageCount == 2) {
-//         $discount_amount = 13.33;
-//     } elseif ($packageCount == 3) {
-//         $discount_amount = 26.66;
-//     } elseif ($packageCount == 4) {
-//         $discount_amount = 40;
-//     }
-//     if ($packageCount > 1 && $packageCount < 5) {
-//         $discount_reason = 'packages Discount'; // set the reason for the discount here
-
-//         WC()->cart->add_fee(sanitize_text_field($discount_reason), -$discount_amount);
-//     }
-//     // die;
-// }
 function woo_add_cart_fee()
 {
 
@@ -219,26 +189,11 @@ function woo_add_cart_fee()
 	$packageCount = [];
 
 	foreach ($woocommerce->cart->get_cart() as $cart_item_key => $cart_item) {
-
 		$product     = wc_get_product($cart_item['product_id']);
 		if ($product->is_type('bundle') && is_object_in_term($cart_item['product_id'], 'product_cat', 327)) {
-			// echo 'YEs<br />';
+
 			$packageCount[$cart_item['product_id']] = $cart_item['product_id'];
 		}
-		// if ($product->is_type('bundle')) {
-
-		//     $term_obj_list = get_the_terms($cart_item['product_id'], 'product_cat');
-		//     print_r($term_obj_list);
-
-		// }
-		// $bundle_id = wc_pb_get_bundled_cart_item_container($cart_item, false, true);
-		// // echo  has_term(327, 'product_cat', $cart_item['product_id']) . '<br />';
-		// if (has_term(327, 'product_cat', $cart_item['product_id'])) {
-		// echo  $cart_item['product_id'];
-		// echo has_term(317, 'product_cat', $cart_item['product_id']);
-		// die;
-		// $packageCount[$bundle_id] = $bundle_id;
-		// }
 	}
 	$packageCount = count(array_unique($packageCount));
 	if ($packageCount == 2) {
@@ -253,7 +208,6 @@ function woo_add_cart_fee()
 
 		$woocommerce->cart->add_fee(sanitize_text_field($discount_reason), -$discount_amount);
 	}
-	// $woocommerce->cart->add_fee(__('Custom', 'woocommerce'), 5);
 }
 add_action('woocommerce_cart_calculate_fees', 'woo_add_cart_fee');
 // add_action('woocommerce_order_status_completed', 'rudr_complete_for_status');
@@ -839,7 +793,7 @@ function sendEmail($user_id, $pass)
 		'From: ' . $mail_from,
 	);
 	$emaildata = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-			<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+			<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" dir="rtl">
 			<head>
 			<!--[if gte mso 9]>
 			<xml>
@@ -1001,7 +955,7 @@ function sendEmail($user_id, $pass)
 			<p style="font-size: 14px; line-height: 140%;">&nbsp;</p>
 			<p style="line-height: 140%; font-size: 14px;"><span style="font-family: Crimson Text, serif;"><span style="font-size: 18px; line-height: 25.2px;">تم تسجيل حساب لابنك بنجاح</span></span></p>
 			<p style="line-height: 140%; font-size: 14px;"><span style="font-family: Crimson Text, serif;"><span style="font-size: 18px; line-height: 25.2px;">فيما يلي بيانات تسجيل الدخول</span></span></p>
-			<p style="line-height: 140%; font-size: 14px;"><span style="font-family: Crimson Text, serif;"><span style="font-size: 18px; line-height: 25.2px;"> <a rel="noopener" href="https://lms.edunovel.com" target="_blank">https://lms.edunovel.com</a>:رابط الدخول</span></span></p>
+			<p style="line-height: 140%; font-size: 14px;"><span style="font-family: Crimson Text, serif;"><span style="font-size: 18px; line-height: 25.2px;"> <a rel="noopener" href="' . home_url() . '" target="_blank">' . home_url() . '</a>:رابط الدخول</span></span></p>
 			<p style="line-height: 140%; font-size: 14px;"><span style="font-family: Crimson Text, serif;"><span style="font-size: 18px; line-height: 25.2px;">' . $user->user_email . ':البريد الالكتروني</span></span></p>
 			<p style="line-height: 140%; font-size: 14px;"><span style="font-family: Crimson Text, serif;"><span style="font-size: 18px; line-height: 25.2px;">كلمة المرور:</span><p>' . $pass . '</p></span></p>
 			<p style="line-height: 140%; font-size: 14px;">&nbsp;</p>
@@ -1167,16 +1121,7 @@ function my_custom_registration_action($user_id)
 	$moodle_user = moowoodle_moodle_core_function_callback('create_users', array('users' => array($user_data)));
 }
 add_action('user_register', 'my_custom_registration_action');
-// Modify the forgot password URL
-add_filter('lostpassword_url', 'custom_lostpassword_url', 10, 2);
 
-function custom_lostpassword_url($lostpassword_url, $redirect)
-{
-	// Replace 'custom-forgot-password-page' with the slug of your custom page template
-	$custom_lostpassword_url = home_url('/reset-password-page/');
-
-	return $custom_lostpassword_url;
-}
 add_action('wp_ajax_reset_password', 'custom_reset_password');
 add_action('wp_ajax_nopriv_reset_password', 'custom_reset_password');
 
@@ -1260,3 +1205,72 @@ function edumall_user_profile_text()
 	return 'حسابي';
 }
 add_filter('edumall_user_profile_text', 'edumall_user_profile_text', 40);
+// Modify the forgot password URL
+add_filter('edumall_pre_user_reset_password', 'fogetpasswordTemplate', 10, 2);
+function fogetpasswordTemplate()
+{
+	$user_login   = wp_kses($_POST['user_login'], $allowed_html);
+
+	if (empty($user_login)) {
+		return array(
+			'success'  => false,
+			'messages' => esc_html__('Enter a username or email address.', 'edumall'),
+		);
+	}
+
+	if (filter_var($user_login, FILTER_VALIDATE_EMAIL)) {
+		$user_data = get_user_by('email', trim($user_login));
+		if (empty($user_data)) {
+			return array(
+				'success'  => false,
+				'messages' => esc_html__('There is no user registered with that email address.', 'edumall'),
+			);
+		}
+	} else {
+		$login     = trim($user_login);
+		$user_data = get_user_by('login', $login);
+
+		if (!$user_data) {
+			return array(
+				'success'  => false,
+				'messages' => esc_html__('Invalid username', 'edumall'),
+			);
+		}
+	}
+
+	$user_login = $user_data->user_login;
+	$user_email = $user_data->user_email;
+	$key        = get_password_reset_key($user_data);
+
+	if (is_wp_error($key)) {
+		return array('success' => false, 'messages' => $key);
+	}
+
+	$message = esc_html__('Someone has requested a password reset for the following account:', 'edumall') . "\r\n\r\n";
+	$message .= network_home_url('/') . "\r\n\r\n";
+	$message .= sprintf(esc_html__('Username: %s', 'edumall'), $user_login) . "\r\n\r\n";
+	$message .= esc_html__('If this was a mistake, just ignore this email and nothing will happen.', 'edumall') . "\r\n\r\n";
+	$message .= esc_html__('To reset your password, visit the following address:', 'edumall') . "\r\n\r\n";
+	$message .= '<' . network_site_url("reset-password-page/?action=reset_pwd&key=$key&login=" . rawurlencode($user_login), 'login') . ">\r\n";
+
+	if (is_multisite()) {
+		$blogname = $GLOBALS['current_site']->site_name;
+	} else {
+		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+	}
+
+	$title   = sprintf(esc_html__('[%s] Password Reset', 'edumall'), $blogname);
+	$title   = apply_filters('retrieve_password_title', $title, $user_login, $user_data);
+	$message = apply_filters('retrieve_password_message', $message, $key, $user_login, $user_data);
+	if ($message && !wp_mail($user_email, wp_specialchars_decode($title), $message)) {
+		return array(
+			'success'  => false,
+			'messages' => esc_html__('The email could not be sent.', 'edumall') . "<br />\n" . esc_html__('Possible reason: your host may have disabled the mail function.', 'edumall'),
+		);
+	} else {
+		return array(
+			'success'  => true,
+			'messages' => esc_html__('Please, Check your email to get new password', 'edumall'),
+		);
+	}
+}
