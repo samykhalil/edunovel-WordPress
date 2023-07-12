@@ -59,6 +59,9 @@
 
 .myaccount .woocommerce-orders-table__cell-order-actions a {
 	margin: 0 5px;
+	color: #fff;
+	border-color: #5f2082;
+	background-color: #5f2082;
 }
 
 .inputContainer {
