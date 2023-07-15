@@ -1255,6 +1255,8 @@ function register_custom_widget()
 {
 	if (class_exists('Elementor\Widget_Base')) {
 		require_once get_stylesheet_directory() . '/widgets/elementor_block_course_add_to_cart.php';
+		require_once get_stylesheet_directory() . '/widgets/elementor_block_course_category.php';
+		\Elementor\Plugin::instance()->widgets_manager->register(new \TutorCourseCategories());
 		\Elementor\Plugin::instance()->widgets_manager->register(new \TutorCourse());
 	}
 }
