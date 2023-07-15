@@ -78,30 +78,6 @@ function prefix_after_cart_item_name($cart_item, $cart_item_key)
 add_action('woocommerce_after_cart_item_name', 'prefix_after_cart_item_name', 10, 2);
 
 /**
- * Enqueue our JS file
- */
-function prefix_enqueue_scripts()
-{
-	// wp_enqueue_script( 'script-course-assign', get_template_directory_uri() . '/assets/js/course-assign.js', array(), '1.0.0', true );
-
-	// trailingslashit( plugin_dir_url( __FILE__ ) ) . 'update-cart-item-ajax.js', array( 'jquery-blockui' ), time(), true );
-	wp_register_script('script-course-assign',  EDUMALL_THEME_ASSETS_URI . '/js/course-assign.js', array('jquery-blockui'), '2.0.0', true);
-	wp_localize_script(
-		'script-course-assign',
-		'prefix_vars',
-		array(
-			'ajaxurl' => admin_url('admin-ajax.php'),
-			'redirecturl' => home_url(),
-		)
-	);
-	wp_enqueue_script('script-course-assign');
-}
-add_action('wp_enqueue_scripts', 'prefix_enqueue_scripts');
-
-
-
-
-/**
  * Update cart item notes
  */
 function check_user_exists()
@@ -955,8 +931,8 @@ function sendEmail($user_id, $pass)
 			<p style="font-size: 14px; line-height: 140%;">&nbsp;</p>
 			<p style="line-height: 140%; font-size: 14px;"><span style="font-family: Crimson Text, serif;"><span style="font-size: 18px; line-height: 25.2px;">تم تسجيل حساب لابنك بنجاح</span></span></p>
 			<p style="line-height: 140%; font-size: 14px;"><span style="font-family: Crimson Text, serif;"><span style="font-size: 18px; line-height: 25.2px;">فيما يلي بيانات تسجيل الدخول</span></span></p>
-			<p style="line-height: 140%; font-size: 14px;"><span style="font-family: Crimson Text, serif;"><span style="font-size: 18px; line-height: 25.2px;"> <a rel="noopener" href="' . home_url() . '" target="_blank">' . home_url() . '</a>:رابط الدخول</span></span></p>
-			<p style="line-height: 140%; font-size: 14px;"><span style="font-family: Crimson Text, serif;"><span style="font-size: 18px; line-height: 25.2px;">' . $user->user_email . ':البريد الالكتروني</span></span></p>
+			<p style="line-height: 140%; font-size: 14px;"><span style="font-family: Crimson Text, serif;"><span style="font-size: 18px; line-height: 25.2px;"> <span>رابط الدخول :</span><a rel="noopener" href="' . home_url() . '" target="_blank">' . home_url() . '</a></span></span></p>
+			<p style="line-height: 140%; font-size: 14px;"><span style="font-family: Crimson Text, serif;"><span style="font-size: 18px; line-height: 25.2px;"><span> البريد الالكتروني :</span> ' . $user->user_email . '</span></span></p>
 			<p style="line-height: 140%; font-size: 14px;"><span style="font-family: Crimson Text, serif;"><span style="font-size: 18px; line-height: 25.2px;">كلمة المرور:</span><p>' . $pass . '</p></span></p>
 			<p style="line-height: 140%; font-size: 14px;">&nbsp;</p>
 			<p style="line-height: 140%; font-size: 14px;">&nbsp;</p>
@@ -1274,3 +1250,12 @@ function fogetpasswordTemplate()
 		);
 	}
 }
+// tutor single course widget
+function register_custom_widget()
+{
+	if (class_exists('Elementor\Widget_Base')) {
+		require_once get_stylesheet_directory() . '/widgets/elementor_block_course_add_to_cart.php';
+		\Elementor\Plugin::instance()->widgets_manager->register(new \TutorCourse());
+	}
+}
+add_action('elementor/widgets/widgets_registered', 'register_custom_widget');

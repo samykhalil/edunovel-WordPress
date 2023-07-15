@@ -170,6 +170,8 @@ get_header();
                                     // 4) group items for each user
                                     foreach ($items as $item_id => $item_data) {
                                        if (!$item_data['bundled_by']) {
+                                          $course = Edumall_Tutor::instance()->get_course_by_wc_product($item_data['product_id']);
+                                          echo  '<img src="' . get_the_post_thumbnail_url($course->ID) . '" height="80" width="80" />';
                                           $course_time .= get_post_meta($item_data['product_id'], 'course_time', true);
                                           echo  $item_data->get_name();
                                        }
@@ -337,6 +339,8 @@ get_header();
                         // 4) group items for each user
                         foreach ($items as $item_id => $item_data) {
                            if (!$item_data['bundled_by']) {
+                              $course = Edumall_Tutor::instance()->get_course_by_wc_product($item_data['product_id']);
+                              echo  '<img src="' . get_the_post_thumbnail_url($course->ID) . '" height="80" width="80" />';
                               $course_time .= get_post_meta($item_data['product_id'], 'course_time', true);
                               print_r($item_data->get_name());
                            }

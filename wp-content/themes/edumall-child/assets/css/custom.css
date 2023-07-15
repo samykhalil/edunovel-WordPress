@@ -197,3 +197,20 @@
 	text-decoration: none;
 	cursor: pointer;
 }
+.tutor-course {
+	border-radius: 10px;
+	box-shadow: 0 3px 8px 2px #dddddd73;
+}
+.tutor-course img {
+	border-top-left-radius: 10px;
+	border-top-right-radius: 10px;
+}
+.tutor-course .course-loop-info {
+	padding: 1rem;
+}
+.tutor-course .course-loop-enrolled-button.cart-notification a {
+	margin: 0 auto;
+	display: block;
+	width: 70%;
+	margin-top: 1.5rem;
+}
