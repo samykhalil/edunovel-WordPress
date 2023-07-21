@@ -9,11 +9,16 @@ if (!function_exists('edumall_child_enqueue_scripts')) {
 	{
 		wp_enqueue_style('edumall-child-style', get_stylesheet_directory_uri() . '/style.css');
 		wp_enqueue_style('custom-style', get_stylesheet_directory_uri() . '/assets/css/custom.css');
-		wp_enqueue_script(
+		wp_register_script('custom-script',  get_stylesheet_directory_uri() . '/assets/js/custom_script.js', array('jquery-blockui'), '2.0.0', true);
+		wp_localize_script(
 			'custom-script',
-			get_stylesheet_directory_uri() . '/assets/js/custom_script.js',
-			array('jquery')
+			'prefix_vars',
+			array(
+				'ajaxurl' => admin_url('admin-ajax.php'),
+				'redirecturl' => home_url(),
+			)
 		);
+		wp_enqueue_script('custom-script');
 	}
 }
 add_action('wp_enqueue_scripts', 'edumall_child_enqueue_scripts', 15);
@@ -231,14 +236,12 @@ function rudr_complete_for_status($order_id)
 		//     echo 'Yesss im in ';
 		$moowoodle_moodle_user_id = search_for_moodle_user('email', trim($parent_user->user_email));
 		if ($moowoodle_moodle_user_id > 0) {
-			// echo 'Yesss im in '
 			//     . $moowoodle_moodle_user_id;
 			$enrolments = get_enrollment_data($order_id, $moowoodle_moodle_user_id, 1);
 
 			if (empty($enrolments)) {
 				return;
 			}
-			$enrolment_data = $enrolments;
 			foreach ($enrolments as $key => $value) {
 				unset($enrolments[$key]['linked_course_id']);
 				unset($enrolments[$key]['course_name']);
@@ -278,41 +281,26 @@ function rudr_complete_for_status($order_id)
 				));
 			}
 		}
+		$moowoodle_moodle_user_id = search_for_moodle_user('email', trim($user->user_email));
+		if ($moowoodle_moodle_user_id > 0) {
+			//     . $moowoodle_moodle_user_id;
+			$enrolments = get_enrollment_data($order_id, $moowoodle_moodle_user_id, 1);
 
-		if (class_exists('WC_Subscriptions_Product') && WC_Subscriptions_Product::is_subscription($product_new)) {
-			$sub = wcs_create_subscription(array(
-				'order_id' => $new_order->get_id(),
-				'status' => 'pending', // Status should be initially set to pending to match how normal checkout process goes
-				'billing_period' => WC_Subscriptions_Product::get_period($product_new),
-				'billing_interval' => WC_Subscriptions_Product::get_interval($product_new)
-			));
-
-			if (is_wp_error($sub)) {
-				return false;
+			if (empty($enrolments)) {
+				return;
 			}
-
-			// Modeled after WC_Subscriptions_Cart::calculate_subscription_totals()
-			$start_date = gmdate('Y-m-d H:i:s');
-			// Add product to subscription
-			$sub->add_product($product_new, 1);
-
-			$dates = array(
-				'trial_end'    => WC_Subscriptions_Product::get_trial_expiration_date($product_new, $start_date),
-				'next_payment' => WC_Subscriptions_Product::get_first_renewal_payment_date($product_new, $start_date),
-				'end'          => WC_Subscriptions_Product::get_expiration_date($product_new, $start_date),
-			);
-
-			$sub->update_dates($dates);
-			$sub->calculate_totals();
-
-			// Update order status with custom note
-			$note = !empty($note) ? $note : __('Programmatically added order and subscription.');
-			$new_order->update_status('completed', $note, true);
-			// Also update subscription status to active from pending (and add note)
-			$sub->update_status('active', $note, true);
-		} else {
-			$new_order->update_status('completed');
+			foreach ($enrolments as $key => $value) {
+				unset($enrolments[$key]['linked_course_id']);
+				unset($enrolments[$key]['course_name']);
+			}
+			// print_r($enrolments);
+			moowoodle_moodle_core_function_callback('enrol_users', array('enrolments' => $enrolments));
+			add_post_meta($order_id, 'moodle_user_enrolled', "false");
+			add_post_meta($order_id, 'moodle_user_enrolment_date', time());
+			// send confirmation email
+			// do_action('moowoodle_after_enrol_moodle_user', $enrolment_data);
 		}
+		$new_order->update_status('completed');
 		$new_order->save();
 	}
 }
@@ -429,9 +417,6 @@ function ajax_register()
 		$info['first_name'] = sanitize_text_field($_POST['first_name']);
 		$info['last_name'] = sanitize_text_field($_POST['last_name']);
 
-
-
-
 		// Register the user
 		$user_register = wp_insert_user($info);
 		if (is_wp_error($user_register)) {
@@ -460,18 +445,6 @@ function ajax_register()
 				$billing_email = trim($_POST['email']);
 
 
-
-				// $username = $billing_email;
-				// if( $user ) {
-				//     $username = $user->user_login;
-				//     } else {
-				//     $user = get_user_by( 'email', $billing_email );
-				//     if( $user ) {
-				//         $username = $user->data->user_login;
-				//     }
-				// }
-				// $username = str_replace( ' ', '', $username );
-				// $username = strtolower( $username );
 				$username = $user->user_login;
 				$username = str_replace(' ', '', $username);
 				$username = strtolower($username);
@@ -509,24 +482,6 @@ function ajax_register()
 
 
 				$user = ($user_id != 0) ? get_userdata($user_id) : false;
-				// $billing_email = trim($_POST['email']);
-
-
-
-				// print_r($user);
-				// die;
-
-				// $username = $billing_email;
-				// if( $user ) {
-				//     $username = $user->user_login;
-				//     } else {
-				//     $user = get_user_by( 'email', $billing_email );
-				//     if( $user ) {
-				//         $username = $user->data->user_login;
-				//     }
-				// // }
-				// $username = str_replace( ' ', '', $username );
-				// $username = strtolower( $username );
 
 				$username = $user->user_login;
 				$username = str_replace(' ', '', $username);
@@ -1261,3 +1216,92 @@ function register_custom_widget()
 	}
 }
 add_action('elementor/widgets/widgets_registered', 'register_custom_widget');
+
+// change Category string in menu 
+function custom_translation_override($translated_text, $text, $domain)
+{
+	// Check if the domain matches the one you want to override.
+	if ('edumall' === $domain) {
+		// Check the current file's path to identify the specific file.
+		// $specific_file_path = get_template_directory() . 'template-parts/header/components/category-menu.php';
+
+		// Use the same translation overrides as before.
+		$translations = array(
+			'Category' => 'الاشتراكات',
+			'الفئة' => 'الاشتراكات',
+			// Add more strings and their replacements as needed.
+		);
+
+		// Check if the current file's path matches the specific file path.
+		// if (realpath(__FILE__) === $specific_file_path) {
+		// Check if the original string exists in the translations array.
+		if (isset($translations[$text])) {
+			// Override the translation with your custom translation.
+			$translated_text = $translations[$text];
+		}
+		// }
+	}
+
+	return $translated_text;
+}
+add_filter('gettext', 'custom_translation_override', 20, 3);
+
+
+
+
+
+// disable enroll from MooWoodle plguin 
+// function remove_plugin_actions()
+// {
+// 	remove_action('woocommerce_order_status_completed', array('MooWoodle_Enrollment', 'process_order'), 10);
+// 	remove_action('woocommerce_subscription_status_updated', array('MooWoodle_Enrollment', 'update_course_access'), 10);
+// 	remove_action('woocommerce_thankyou', array('MooWoodle_Enrollment', 'enrollment_modified_details'));
+// 	remove_action('woocommerce_after_shop_loop_item_title', array('MooWoodle_Enrollment', 'add_dates_with_product'));
+// }
+// add_action('after_setup_theme', 'remove_plugin_actions');
+function remove_filters_with_method_and_class_name($hook_name, $class_name, $method_name, $priority = 0)
+{
+	global $wp_filter;
+	// Take only filters on right hook name and priority
+	if (!isset($wp_filter[$hook_name][$priority]) || !is_array($wp_filter[$hook_name][$priority])) {
+		return false;
+	}
+	// Loop on filters registered
+	foreach ((array) $wp_filter[$hook_name][$priority] as $unique_id => $filter_array) {
+		// Test if filter is an array ! (always for class/method)
+		if (
+			isset($filter_array['function']) && is_array($filter_array['function'])
+		) {
+			// Test if object is a class and method is equal to param !
+			if (
+				is_object($filter_array['function'][0]) && get_class($filter_array['function'][0])
+				&& get_class($filter_array['function'][0]) == $class_name && $filter_array['function'][1] == $method_name
+			) {
+				// Test for WordPress >= 4.7 WP_Hook class (https://make.wordpress.org/core/2016/09/08/wp_hook-next-generation-actions-and-filters/)
+				if (is_a($wp_filter[$hook_name], 'WP_Hook')) {
+					unset($wp_filter[$hook_name]->callbacks[$priority][$unique_id]);
+				} else {
+					unset($wp_filter[$hook_name][$priority][$unique_id]);
+				}
+			}
+		}
+	}
+	return false;
+}
+
+function remove_other_plugin_action()
+{
+	remove_filters_with_method_and_class_name("woocommerce_order_status_completed", "MooWoodle_Enrollment", "process_order", 20);
+	remove_action('woocommerce_order_status_completed', array('MooWoodle_Enrollment', 'process_order'), 20, 3);
+}
+add_action('init', 'remove_other_plugin_action');
+// function remove_plugin_actions()
+// {
+// $myclass = new MooWoodle_Enrollment();
+// remove_action('woocommerce_order_status_completed', array($myclass, 'process_order'), 20);
+
+// 	remove_action('woocommerce_subscription_status_updated', array('MooWoodle_Enrollment', 'update_course_access'), 10);
+// 	remove_action('woocommerce_thankyou', array('MooWoodle_Enrollment', 'enrollment_modified_details'), 10);
+// 	remove_action('woocommerce_after_shop_loop_item_title', array('MooWoodle_Enrollment', 'add_dates_with_product'), 10);
+// }
+// add_action('wp_loaded', 'remove_plugin_actions', PHP_INT_MAX);
