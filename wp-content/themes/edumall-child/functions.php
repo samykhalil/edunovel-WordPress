@@ -171,7 +171,7 @@ function woo_add_cart_fee()
 
 	foreach ($woocommerce->cart->get_cart() as $cart_item_key => $cart_item) {
 		$product     = wc_get_product($cart_item['product_id']);
-		if ($product->is_type('bundle') && is_object_in_term($cart_item['product_id'], 'product_cat', 327)) {
+		if ($product->is_type('bundle') && is_object_in_term($cart_item['product_id'], 'product_cat', 375)) {
 
 			$packageCount[$cart_item['product_id']] = $cart_item['product_id'];
 		}
