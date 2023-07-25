@@ -23,6 +23,7 @@ if ($product) {
 			</a> -->
 		<?php //else : 
 		?>
+		سسسس
 		<form class="cart" action="<?php echo esc_url(apply_filters('tutor_course_add_to_cart_form_action', get_permalink(get_the_ID()))); ?>" method="post" enctype='multipart/form-data'>
 
 			<?php do_action('tutor_before_add_to_cart_button'); ?>
@@ -44,10 +45,19 @@ if ($product) {
 			?>
 
 			<div class="cart-notification" data-notification="<?php echo esc_attr(wp_json_encode($notification_settings)); ?>">
-				<button type="submit" name="add-to-cart" value="<?php echo esc_attr($product->get_id()); ?>" class="single_add_to_cart_button ajax_add_to_cart tutor-button alt">
-					<i class="far fa-shopping-cart"></i>
-					<?php echo esc_html($product->single_add_to_cart_text()); ?>
-				</button>
+				<?php if (is_user_logged_in()) : ?>
+					<button type="submit" name="add-to-cart" value="<?php echo esc_attr($product->get_id()); ?>" class="single_add_to_cart_button ajax_add_to_cart tutor-button alt">
+						<i class="far fa-shopping-cart"></i>
+						<?php echo esc_html($product->single_add_to_cart_text()); ?>
+					</button>
+				<?php else : ?>
+					<button type="submit" name="add-to-cart" value="<?php echo esc_attr($product->get_id()); ?>" class="open-popup-login top-bar-login-link tutor-button alt">
+						<i class="far fa-user"></i>
+						قم بتسجيل الدخول اولا
+					</button>
+
+				<?php endif; ?>
+
 			</div>
 			<?php do_action('tutor_after_add_to_cart_button'); ?>
 

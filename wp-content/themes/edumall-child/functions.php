@@ -237,7 +237,7 @@ function rudr_complete_for_status($order_id)
 		$moowoodle_moodle_user_id = search_for_moodle_user('email', trim($parent_user->user_email));
 		if ($moowoodle_moodle_user_id > 0) {
 			//     . $moowoodle_moodle_user_id;
-			$enrolments = get_enrollment_data($order_id, $moowoodle_moodle_user_id, 1);
+			$enrolments = get_enrollment_data($order_id, $moowoodle_moodle_user_id, 0);
 
 			if (empty($enrolments)) {
 				return;
@@ -284,7 +284,7 @@ function rudr_complete_for_status($order_id)
 		$moowoodle_moodle_user_id = search_for_moodle_user('email', trim($user->user_email));
 		if ($moowoodle_moodle_user_id > 0) {
 			//     . $moowoodle_moodle_user_id;
-			$enrolments = get_enrollment_data($order_id, $moowoodle_moodle_user_id, 1);
+			$enrolments = get_enrollment_data($order_id, $moowoodle_moodle_user_id, 0);
 
 			if (empty($enrolments)) {
 				return;
@@ -693,6 +693,9 @@ function get_enrollment_data($order_id, $moowoodle_moodle_user_id, $suspend = 0)
 			if (!empty($course_id)) {
 				$enrolment = array();
 				if (!empty($course_time)) {
+					// $enrolment['timestart']['enabled'] = 1; //intval( $course_id );
+					// $enrolment['timeend']['enabled'] = 1;
+					// $enrolment['duration'] = $course_time;
 					$enrolment['timestart'] = time(); //intval( $course_id );
 					$enrolment['timeend'] = time() + intval($course_time);
 

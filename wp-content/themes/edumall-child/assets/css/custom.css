@@ -52,7 +52,17 @@
 	width: 33.333%;
 	text-align: center;
 }
-
+.woocommerce-orders-table__cell-order-number div {
+	justify-content: center;
+	display: flex;
+	margin-bottom: 10px;
+	align-items: center;
+	gap: 5px;
+}
+.woocommerce-orders-table__cell-order-number div img {
+	height: 50px;
+	width: 50px;
+}
 .myaccount .woocommerce-orders-table__cell-order-actions {
 	width: 50% !important;
 }
